@@ -71,10 +71,7 @@ class Command(BaseCommand):
             recipient__type=Recipient.STREAM).exclude(recipient__type=Recipient.PERSONAL).count()
 
     def report_percentage(self, numerator: float, denominator: float, text: str) -> None:
-        if not denominator:
-            fraction = 0.0
-        else:
-            fraction = numerator / float(denominator)
+        fraction = 0.0 if not denominator else numerator / float(denominator)
         print(f"{fraction * 100:.2f}% of", text)
 
     def handle(self, *args: Any, **options: Any) -> None:
@@ -132,8 +129,12 @@ class Command(BaseCommand):
             starrers = UserMessage.objects.filter(user_profile__in=user_profiles,
                                                   flags=UserMessage.flags.starred).values(
                 "user_profile").annotate(count=Count("user_profile"))
-            print("{} users have starred {} messages".format(
-                len(starrers), sum([elt["count"] for elt in starrers])))
+            print(
+                "{} users have starred {} messages".format(
+                    len(starrers), sum(elt["count"] for elt in starrers)
+                )
+            )
+
 
             active_user_subs = Subscription.objects.filter(
                 user_profile__in=user_profiles, active=True)
@@ -141,20 +142,33 @@ class Command(BaseCommand):
             # Streams not in home view
             non_home_view = active_user_subs.filter(is_muted=True).values(
                 "user_profile").annotate(count=Count("user_profile"))
-            print("{} users have {} streams not in home view".format(
-                len(non_home_view), sum([elt["count"] for elt in non_home_view])))
+            print(
+                "{} users have {} streams not in home view".format(
+                    len(non_home_view), sum(elt["count"] for elt in non_home_view)
+                )
+            )
+
 
             # Code block markup
             markup_messages = human_messages.filter(
                 sender__realm=realm, content__contains="~~~").values(
                 "sender").annotate(count=Count("sender"))
-            print("{} users have used code block markup on {} messages".format(
-                len(markup_messages), sum([elt["count"] for elt in markup_messages])))
+            print(
+                "{} users have used code block markup on {} messages".format(
+                    len(markup_messages),
+                    sum(elt["count"] for elt in markup_messages),
+                )
+            )
+
 
             # Notifications for stream messages
             notifications = active_user_subs.filter(desktop_notifications=True).values(
                 "user_profile").annotate(count=Count("user_profile"))
-            print("{} users receive desktop notifications for {} streams".format(
-                len(notifications), sum([elt["count"] for elt in notifications])))
+            print(
+                "{} users receive desktop notifications for {} streams".format(
+                    len(notifications), sum(elt["count"] for elt in notifications)
+                )
+            )
+
 
             print("")

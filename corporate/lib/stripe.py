@@ -372,25 +372,24 @@ def process_initial_upgrade(user: UserProfile, licenses: int, automanage_license
     # expect frequent card failures on initial signup.
     # Hence, if we're going to charge a card, do it at the beginning, even if we later may have to
     # adjust the number of licenses.
-    if charge_automatically:
-        if not free_trial:
-            stripe_charge = stripe.Charge.create(
-                amount=price_per_license * licenses,
-                currency='usd',
-                customer=customer.stripe_customer_id,
-                description=f"Upgrade to Zulip Standard, ${price_per_license/100} x {licenses}",
-                receipt_email=user.delivery_email,
-                statement_descriptor='Zulip Standard')
-            # Not setting a period start and end, but maybe we should? Unclear what will make things
-            # most similar to the renewal case from an accounting perspective.
-            assert isinstance(stripe_charge.source, stripe.Card)
-            description = f"Payment (Card ending in {stripe_charge.source.last4})"
-            stripe.InvoiceItem.create(
-                amount=price_per_license * licenses * -1,
-                currency='usd',
-                customer=customer.stripe_customer_id,
-                description=description,
-                discountable=False)
+    if charge_automatically and not free_trial:
+        stripe_charge = stripe.Charge.create(
+            amount=price_per_license * licenses,
+            currency='usd',
+            customer=customer.stripe_customer_id,
+            description=f"Upgrade to Zulip Standard, ${price_per_license/100} x {licenses}",
+            receipt_email=user.delivery_email,
+            statement_descriptor='Zulip Standard')
+        # Not setting a period start and end, but maybe we should? Unclear what will make things
+        # most similar to the renewal case from an accounting perspective.
+        assert isinstance(stripe_charge.source, stripe.Card)
+        description = f"Payment (Card ending in {stripe_charge.source.last4})"
+        stripe.InvoiceItem.create(
+            amount=price_per_license * licenses * -1,
+            currency='usd',
+            customer=customer.stripe_customer_id,
+            description=description,
+            discountable=False)
 
     # TODO: The correctness of this relies on user creation, deactivation, etc being
     # in a transaction.atomic() with the relevant RealmAuditLog entries

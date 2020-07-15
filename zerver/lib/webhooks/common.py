@@ -106,9 +106,11 @@ def standardize_headers(input_headers: Union[None, Dict[str, Any]]) -> Dict[str,
 
     for raw_header in input_headers:
         polished_header = raw_header.upper().replace("-", "_")
-        if polished_header not in ["CONTENT_TYPE", "CONTENT_LENGTH"]:
-            if not polished_header.startswith("HTTP_"):
-                polished_header = "HTTP_" + polished_header
+        if polished_header not in [
+            "CONTENT_TYPE",
+            "CONTENT_LENGTH",
+        ] and not polished_header.startswith("HTTP_"):
+            polished_header = "HTTP_" + polished_header
         canonical_headers[polished_header] = str(input_headers[raw_header])
 
     return canonical_headers
@@ -157,9 +159,6 @@ def get_http_headers_from_filename(http_header_key: str) -> Callable[[str], Dict
     of "header_value__other_details" or even "header_value" and the use this
     method in the headers.py file for the integration."""
     def fixture_to_headers(filename: str) -> Dict[str, str]:
-        if '__' in filename:
-            event_type = filename.split("__")[0]
-        else:
-            event_type = filename
+        event_type = filename.split("__")[0] if '__' in filename else filename
         return {http_header_key: event_type}
     return fixture_to_headers

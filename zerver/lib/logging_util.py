@@ -118,18 +118,13 @@ def skip_200_and_304(record: logging.LogRecord) -> bool:
     # Apparently, `status_code` is added by Django and is not an actual
     # attribute of LogRecord; as a result, mypy throws an error if we
     # access the `status_code` attribute directly.
-    if getattr(record, 'status_code', None) in [200, 304]:
-        return False
-
-    return True
+    return getattr(record, 'status_code', None) not in [200, 304]
 
 def skip_site_packages_logs(record: logging.LogRecord) -> bool:
     # This skips the log records that are generated from libraries
     # installed in site packages.
     # Workaround for https://code.djangoproject.com/ticket/26886
-    if 'site-packages' in record.pathname:
-        return False
-    return True
+    return 'site-packages' not in record.pathname
 
 def find_log_caller_module(record: logging.LogRecord) -> Optional[str]:
     '''Find the module name corresponding to where this record was logged.

@@ -25,7 +25,7 @@ def get_user_info_dict(realm_id: int) -> Dict[int, Dict[str, Any]]:
         status_text = row['status_text']
         user_id = row['user_profile_id']
 
-        dct = dict()
+        dct = {}
         if away:
             dct['away'] = away
         if status_text:

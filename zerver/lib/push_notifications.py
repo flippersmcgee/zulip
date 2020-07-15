@@ -290,11 +290,7 @@ def send_android_push_notification(devices: List[DeviceToken], data: Dict[str, A
         for reg_id, msg_id in res['success'].items():
             logger.info("GCM: Sent %s as %s", reg_id, msg_id)
 
-    if remote:
-        DeviceTokenClass = RemotePushDeviceToken
-    else:
-        DeviceTokenClass = PushDeviceToken
-
+    DeviceTokenClass = RemotePushDeviceToken if remote else PushDeviceToken
     # res.canonical will contain results when there are duplicate registrations for the same
     # device. The "canonical" registration is the latest registration made by the device.
     # Ref: https://developer.android.com/google/gcm/adv.html#canonical
@@ -322,14 +318,13 @@ def send_android_push_notification(devices: List[DeviceToken], data: Dict[str, A
 
     if 'errors' in res:
         for error, reg_ids in res['errors'].items():
-            if error in ['NotRegistered', 'InvalidRegistration']:
-                for reg_id in reg_ids:
+            for reg_id in reg_ids:
+                if error in ['NotRegistered', 'InvalidRegistration']:
                     logger.info("GCM: Removing %s", reg_id)
                     # We remove all entries for this token (There
                     # could be multiple for different Zulip servers).
                     DeviceTokenClass.objects.filter(token=reg_id, kind=DeviceTokenClass.GCM).delete()
-            else:
-                for reg_id in reg_ids:
+                else:
                     logger.warning("GCM: Delivery to %s failed: %s", reg_id, error)
 
     # python-gcm handles retrying of the unsent messages.
@@ -487,8 +482,10 @@ def get_gcm_alert(message: Message) -> str:
         return f"New private group message from {sender_str}"
     elif message.recipient.type == Recipient.PERSONAL and message.trigger == 'private_message':
         return f"New private message from {sender_str}"
-    elif message.is_stream_message() and (message.trigger == 'mentioned' or
-                                          message.trigger == 'wildcard_mentioned'):
+    elif message.is_stream_message() and message.trigger in [
+        'mentioned',
+        'wildcard_mentioned',
+    ]:
         return f"New mention from {sender_str}"
     else:  # message.is_stream_message() and message.trigger == 'stream_push_notify'
         return f"New stream message from {sender_str} in {get_display_recipient(message.recipient)}"
@@ -650,7 +647,7 @@ def get_message_payload_apns(user_profile: UserProfile, message: Message) -> Dic
 
     assert message.rendered_content is not None
     content, _ = truncate_content(get_mobile_push_content(message.rendered_content))
-    apns_data = {
+    return {
         'alert': {
             'title': get_apns_alert_title(message),
             'subtitle': get_apns_alert_subtitle(message),
@@ -660,7 +657,6 @@ def get_message_payload_apns(user_profile: UserProfile, message: Message) -> Dic
         'badge': get_apns_badge_count(user_profile),
         'custom': {'zulip': zulip_data},
     }
-    return apns_data
 
 def get_message_payload_gcm(
         user_profile: UserProfile, message: Message,
@@ -703,11 +699,10 @@ def get_remove_payload_apns(user_profile: UserProfile, message_ids: List[int]) -
         'event': 'remove',
         'zulip_message_ids': ','.join(str(id) for id in message_ids),
     })
-    apns_data = {
+    return {
         'badge': get_apns_badge_count(user_profile, message_ids),
         'custom': {'zulip': zulip_data},
     }
-    return apns_data
 
 def handle_remove_push_notification(user_profile_id: int, message_ids: List[int]) -> None:
     """This should be called when a message that previously had a

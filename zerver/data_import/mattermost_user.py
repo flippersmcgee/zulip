@@ -19,9 +19,7 @@ class UserHandler:
         self.id_to_user_map[user_id] = user
 
     def get_user(self, user_id: int) -> Dict[str, Any]:
-        user = self.id_to_user_map[user_id]
-        return user
+        return self.id_to_user_map[user_id]
 
     def get_all_users(self) -> List[Dict[str, Any]]:
-        users = list(self.id_to_user_map.values())
-        return users
+        return list(self.id_to_user_map.values())

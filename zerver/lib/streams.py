@@ -447,7 +447,7 @@ def list_to_streams(streams_raw: Iterable[Mapping[str, Any]],
         else:
             existing_streams.append(stream)
 
-    if len(missing_stream_dicts) == 0:
+    if not missing_stream_dicts:
         # This is the happy path for callers who expected all of these
         # streams to exist already.
         created_streams: List[Stream] = []

@@ -19,7 +19,7 @@ states = {
     3: "UNKNOWN",
 }
 
-if 'USER' in os.environ and not os.environ['USER'] in ['root', 'rabbitmq']:
+if 'USER' in os.environ and os.environ['USER'] not in ['root', 'rabbitmq']:
     print("This script must be run as the root or rabbitmq user")
 
 
@@ -67,7 +67,7 @@ for line in output.split('\n'):
 
 now = int(time.time())
 
-for queue_name in consumers.keys():
+for queue_name in consumers:
     state_file_path = "/var/lib/nagios_state/check-rabbitmq-consumers-" + queue_name
     state_file_tmp = state_file_path + "-tmp"
 
@@ -75,10 +75,7 @@ for queue_name in consumers.keys():
     if queue_name == "notify_tornado":
         target_count = TORNADO_PROCESSES
 
-    if consumers[queue_name] < target_count:
-        status = 2
-    else:
-        status = 0
+    status = 2 if consumers[queue_name] < target_count else 0
     with open(state_file_tmp, "w") as f:
         f.write(f"{now}|{status}|{states[status]}|queue {queue_name} has {consumers[queue_name]} consumers, needs {target_count}\n")
     os.rename(state_file_tmp, state_file_path)

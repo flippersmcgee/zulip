@@ -156,10 +156,7 @@ def bulk_fetch_display_recipients(recipient_tuples: Set[Tuple[int, int, int]],
         Takes an element of the list returned by the query_function, maps it to the final
         display_recipient list.
         """
-        user_profile_list = db_object[1]
-        display_recipient = user_profile_list
-
-        return display_recipient
+        return db_object[1]
 
     def personal_and_huddle_id_fetcher(db_object: Tuple[int, List[UserDisplayRecipient]]) -> int:
         # db_object is a tuple, with recipient_id in the first position

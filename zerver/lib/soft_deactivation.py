@@ -291,9 +291,8 @@ def get_users_for_soft_deactivation(inactive_for_days: int, filter_kwargs: Any) 
     for user_activity in users_activity:
         if (today - user_activity['last_visit']).days > inactive_for_days:
             user_ids_to_deactivate.append(user_activity['user_profile_id'])
-    users_to_deactivate = list(UserProfile.objects.filter(
+    return list(UserProfile.objects.filter(
         id__in=user_ids_to_deactivate))
-    return users_to_deactivate
 
 def do_soft_activate_users(users: List[UserProfile]) -> List[UserProfile]:
     users_soft_activated = []
@@ -313,10 +312,9 @@ def do_catch_up_soft_deactivated_users(users: List[UserProfile]) -> List[UserPro
     return users_caught_up
 
 def get_soft_deactivated_users_for_catch_up(filter_kwargs: Any) -> List[UserProfile]:
-    users_to_catch_up = UserProfile.objects.select_related().filter(
+    return UserProfile.objects.select_related().filter(
         long_term_idle=True,
         is_active=True,
         is_bot=False,
         **filter_kwargs,
     )
-    return users_to_catch_up

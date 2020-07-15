@@ -147,7 +147,7 @@ def check_other_queues(queue_counts_dict: Dict[str, int]) -> List[Dict[str, Any]
 
 def check_rabbitmq_queues() -> None:
     pattern = re.compile(r'(\w+)\t(\d+)')
-    if 'USER' in os.environ and not os.environ['USER'] in ['root', 'rabbitmq']:
+    if 'USER' in os.environ and os.environ['USER'] not in ['root', 'rabbitmq']:
         print("This script must be run as the root or rabbitmq user")
 
     list_queues_output = subprocess.check_output(['/usr/sbin/rabbitmqctl', 'list_queues'],
@@ -155,7 +155,7 @@ def check_rabbitmq_queues() -> None:
     list_consumers_output = subprocess.check_output(['/usr/sbin/rabbitmqctl', 'list_consumers'],
                                                     universal_newlines=True)
 
-    queue_counts_rabbitmqctl = dict()
+    queue_counts_rabbitmqctl = {}
     for line in list_queues_output.split("\n"):
         line = line.strip()
         m = pattern.match(line)

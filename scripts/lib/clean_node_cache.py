@@ -20,8 +20,6 @@ def get_caches_in_use(threshold_days: int) -> Set[str]:
     setups_to_check = {ZULIP_PATH}
     caches_in_use = set()
 
-    if ENV == "prod":
-        setups_to_check |= get_recent_deployments(threshold_days)
     if ENV == "dev":
         # In dev always include the currently active cache in order
         # not to break current installation in case dependencies
@@ -29,6 +27,8 @@ def get_caches_in_use(threshold_days: int) -> Set[str]:
         CURRENT_CACHE = os.path.dirname(os.path.realpath(os.path.join(ZULIP_PATH, "node_modules")))
         caches_in_use.add(CURRENT_CACHE)
 
+    elif ENV == "prod":
+        setups_to_check |= get_recent_deployments(threshold_days)
     for setup_dir in setups_to_check:
         node_modules_link_path = os.path.join(setup_dir, "node_modules")
         if not os.path.islink(node_modules_link_path):

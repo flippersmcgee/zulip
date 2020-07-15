@@ -8,9 +8,7 @@ def is_reserved_subdomain(subdomain: str) -> bool:
         return True
     if subdomain in GENERIC_RESERVED_SUBDOMAINS:
         return True
-    if subdomain[-1] == 's' and subdomain[:-1] in GENERIC_RESERVED_SUBDOMAINS:
-        return True
-    return False
+    return subdomain[-1] == 's' and subdomain[:-1] in GENERIC_RESERVED_SUBDOMAINS
 
 def is_disposable_domain(domain: str) -> bool:
     if domain.lower() in WHITELISTED_EMAIL_DOMAINS:

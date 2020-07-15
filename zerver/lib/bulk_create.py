@@ -102,9 +102,9 @@ def bulk_set_users_or_streams_recipient_fields(model: Model,
 # This is only sed in populate_db, so doesn't really need tests
 def bulk_create_streams(realm: Realm,
                         stream_dict: Dict[str, Dict[str, Any]]) -> None:  # nocoverage
-    existing_streams = frozenset([name.lower() for name in
-                                  Stream.objects.filter(realm=realm)
-                                  .values_list('name', flat=True)])
+    existing_streams = frozenset(name.lower() for name in
+                                      Stream.objects.filter(realm=realm)
+                                      .values_list('name', flat=True))
     streams_to_create: List[Stream] = []
     for name, options in stream_dict.items():
         if 'history_public_to_subscribers' not in options:

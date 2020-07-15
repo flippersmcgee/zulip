@@ -72,8 +72,7 @@ def near_stream_message_url(realm: Realm,
         'near',
         message_id,
     ]
-    full_url = '/'.join(parts)
-    return full_url
+    return '/'.join(parts)
 
 def near_pm_message_url(realm: Realm,
                         message: Dict[str, Any]) -> str:
@@ -95,8 +94,7 @@ def near_pm_message_url(realm: Realm,
         'near',
         message_id,
     ]
-    full_url = '/'.join(parts)
-    return full_url
+    return '/'.join(parts)
 
 def add_query_to_redirect_url(original_url: str, query: str) -> str:
     # Using 'mark_sanitized' because user-controlled data after the '?' is

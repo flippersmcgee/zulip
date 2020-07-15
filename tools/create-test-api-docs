@@ -25,12 +25,11 @@ def clean_up_pattern(s: str) -> str:
             paren_level += 1
         if c == '<' and prior_char == 'P':
             in_braces = True
-        if in_braces or (paren_level == 0):
-            if c != '?':
-                result += c
+        if (in_braces or (paren_level == 0)) and c != '?':
+            result += c
         if c == ')':
             paren_level -= 1
-        if c == '>':
+        elif c == '>':
             in_braces = False
         prior_char = c
     return result
@@ -83,8 +82,6 @@ def create_single_page(pattern: str, out_dir: str, href: str, calls: List[Call])
             f.write('</div>')
 
 def create_user_docs() -> None:
-    fn = 'var/url_coverage.txt'  # TODO: make path more robust, maybe use json suffix
-
     out_dir = 'var/api_docs'
     try:
         os.mkdir(out_dir)
@@ -106,10 +103,9 @@ def create_user_docs() -> None:
             </style>
             ''')
 
-        calls = []
-        for line in open(fn):
-            calls.append(ujson.loads(line))
+        fn = 'var/url_coverage.txt'  # TODO: make path more robust, maybe use json suffix
 
+        calls = [ujson.loads(line) for line in open(fn)]
         pattern_dict: Dict[str, List[Call]] = defaultdict(list)
         for call in calls:
             if 'pattern' in call:

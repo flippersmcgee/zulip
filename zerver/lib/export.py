@@ -1219,14 +1219,15 @@ def _get_exported_s3_record(
 def _save_s3_object_to_file(key: ServiceResource, output_dir: str, processing_avatars: bool,
                             processing_emoji: bool, processing_realm_icon_and_logo: bool) -> None:
     # Helper function for export_files_from_s3
-    if processing_avatars or processing_emoji or processing_realm_icon_and_logo:
-        filename = os.path.join(output_dir, key.key)
-    else:
+    if (
+        not processing_avatars
+        and not processing_emoji
+        and not processing_realm_icon_and_logo
+    ):
         fields = key.key.split('/')
         if len(fields) != 3:
             raise AssertionError(f"Suspicious key with invalid format {key.key}")
-        filename = os.path.join(output_dir, key.key)
-
+    filename = os.path.join(output_dir, key.key)
     if "../" in filename:
         raise AssertionError(f"Suspicious file with invalid format {filename}")
 
@@ -1665,7 +1666,7 @@ def export_messages_single_user(user_profile: UserProfile, output_dir: Path,
         user_message_chunk = [um for um in actual_query]
         user_message_ids = {um.id for um in user_message_chunk}
 
-        if len(user_message_chunk) == 0:
+        if not user_message_chunk:
             break
 
         message_chunk = []

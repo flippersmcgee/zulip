@@ -115,14 +115,12 @@ class JsonableError(Exception):
 
     @property
     def msg(self) -> str:
-        format_data = dict(((f, getattr(self, f)) for f in self.data_fields),
-                           _msg=getattr(self, '_msg', None))
+        format_data = {f: getattr(self, f) for f in self.data_fields}
         return self.msg_format().format(**format_data)
 
     @property
     def data(self) -> Dict[str, Any]:
-        return dict(((f, getattr(self, f)) for f in self.data_fields),
-                    code=self.code.name)
+        return {f: getattr(self, f) for f in self.data_fields}
 
     def to_json(self) -> Dict[str, Any]:
         d = {'result': 'error', 'msg': self.msg}

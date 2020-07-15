@@ -242,9 +242,8 @@ def url_embed_preview_enabled(message: Optional[Message]=None,
     if no_previews:
         return False
 
-    if realm is None:
-        if message is not None:
-            realm = message.get_realm()
+    if realm is None and message is not None:
+        realm = message.get_realm()
 
     if realm is None:
         # realm can be None for odd use cases
@@ -263,9 +262,8 @@ def image_preview_enabled(message: Optional[Message]=None,
     if no_previews:
         return False
 
-    if realm is None:
-        if message is not None:
-            realm = message.get_realm()
+    if realm is None and message is not None:
+        realm = message.get_realm()
 
     if realm is None:
         # realm can be None for odd use cases
@@ -415,8 +413,7 @@ def fetch_tweet_data(tweet_id: str) -> Optional[Dict[str, Any]]:
                 # Code 34 means that the message doesn't exist; return
                 # None so that we will cache the error
                 return None
-            elif len(t) == 1 and ('code' in t[0]) and (t[0]['code'] == 88 or
-                                                       t[0]['code'] == 130):
+            elif len(t) == 1 and 'code' in t[0] and t[0]['code'] in [88, 130]:
                 # Code 88 means that we were rate-limited and 130
                 # means Twitter is having capacity issues; either way
                 # just raise the error so we don't cache None and will
@@ -705,8 +702,7 @@ class InlineInterestingLinkProcessor(markdown.treeprocessors.Treeprocessor):
             # A possible alternative, that avoids the redirect after hitting "Special:"
             # is using the first characters of md5($filename) to generate the url
             domain = parsed_url.scheme + "://" + parsed_url.netloc
-            correct_url = domain + parsed_url.path[:6] + 'Special:FilePath' + parsed_url.path[5:]
-            return correct_url
+            return domain + parsed_url.path[:6] + 'Special:FilePath' + parsed_url.path[5:]
         if parsed_url.netloc == 'linx.li':
             return 'https://linx.li/s' + parsed_url.path
         return None
@@ -747,7 +743,7 @@ class InlineInterestingLinkProcessor(markdown.treeprocessors.Treeprocessor):
             # and gifs do not work.
             # TODO: What if image is huge? Should we get headers first?
             if image_info is None:
-                image_info = dict()
+                image_info = {}
             image_info['is_image'] = True
             parsed_url_list = list(parsed_url)
             parsed_url_list[4] = "dl=1"  # Replaces query
@@ -1570,8 +1566,8 @@ class MarkdownListPreprocessor(markdown.preprocessors.Preprocessor):
             m = FENCE_RE.match(lines[i])
             if m:
                 fence_str = m.group('fence')
-                is_code = not m.group('lang') in ('quote', 'quoted')
-                has_open_fences = not len(open_fences) == 0
+                is_code = m.group('lang') not in ('quote', 'quoted')
+                has_open_fences = not not open_fences
                 matches_last_fence = fence_str == open_fences[-1].fence_str if has_open_fences else False
                 closes_last_fence = not m.group('lang') and matches_last_fence
 
@@ -1580,18 +1576,27 @@ class MarkdownListPreprocessor(markdown.preprocessors.Preprocessor):
                 else:
                     open_fences.append(Fence(fence_str, is_code))
 
-                in_code_fence = any([fence.is_code for fence in open_fences])
+                in_code_fence = any(fence.is_code for fence in open_fences)
 
             # If we're not in a fenced block and we detect an upcoming list
             # hanging off any block (including a list of another type), add
             # a newline.
             li1 = self.LI_RE.match(lines[i])
             li2 = self.LI_RE.match(lines[i+1])
-            if not in_code_fence and lines[i]:
-                if (li2 and not li1) or (li1 and li2 and
-                                         (len(li1.group(1)) == 1) != (len(li2.group(1)) == 1)):
-                    copy.insert(i+inserts+1, '')
-                    inserts += 1
+            if (
+                not in_code_fence
+                and lines[i]
+                and (
+                    (li2 and not li1)
+                    or (
+                        li1
+                        and li2
+                        and (len(li1.group(1)) == 1) != (len(li2.group(1)) == 1)
+                    )
+                )
+            ):
+                copy.insert(i+inserts+1, '')
+                inserts += 1
         return copy
 
 # Name for the outer capture group we use to separate whitespace and
@@ -1626,8 +1631,6 @@ class RealmFilterPattern(markdown.inlinepatterns.Pattern):
 class UserMentionPattern(markdown.inlinepatterns.Pattern):
     def handleMatch(self, m: Match[str]) -> Optional[Element]:
         match = m.group('match')
-        silent = m.group('silent') == '_'
-
         db_data = self.md.zulip_db_data
         if self.md.zulip_message and db_data is not None:
             if match.startswith("**") and match.endswith("**"):
@@ -1643,6 +1646,8 @@ class UserMentionPattern(markdown.inlinepatterns.Pattern):
                 user = db_data['mention_data'].get_user_by_id(id)
             else:
                 user = db_data['mention_data'].get_user_by_name(name)
+
+            silent = m.group('silent') == '_'
 
             if wildcard:
                 self.md.zulip_message.mentions_wildcard = True
@@ -1698,8 +1703,7 @@ class StreamPattern(CompiledPattern):
         db_data = self.md.zulip_db_data
         if db_data is None:
             return None
-        stream = db_data['stream_names'].get(name)
-        return stream
+        return db_data['stream_names'].get(name)
 
     def handleMatch(self, m: Match[str]) -> Optional[Element]:
         name = m.group('stream_name')
@@ -1728,8 +1732,7 @@ class StreamTopicPattern(CompiledPattern):
         db_data = self.md.zulip_db_data
         if db_data is None:
             return None
-        stream = db_data['stream_names'].get(name)
-        return stream
+        return db_data['stream_names'].get(name)
 
     def handleMatch(self, m: Match[str]) -> Optional[Element]:
         stream_name = m.group('stream_name')
@@ -1764,14 +1767,13 @@ class AlertWordNotificationProcessor(markdown.preprocessors.Preprocessor):
                                  '*', '`'}
 
     def check_valid_start_position(self, content: str, index: int) -> bool:
-        if index <= 0 or content[index] in self.allowed_before_punctuation:
-            return True
-        return False
+        return index <= 0 or content[index] in self.allowed_before_punctuation
 
     def check_valid_end_position(self, content: str, index: int) -> bool:
-        if index >= len(content) or content[index] in self.allowed_after_punctuation:
-            return True
-        return False
+        return (
+            index >= len(content)
+            or content[index] in self.allowed_after_punctuation
+        )
 
     def run(self, lines: Iterable[str]) -> Iterable[str]:
         db_data = self.md.zulip_db_data
@@ -2026,7 +2028,7 @@ def make_md_engine(realm_filters_key: int, email_gateway: bool) -> None:
 def build_engine(realm_filters: List[Tuple[str, str, int]],
                  realm_filters_key: int,
                  email_gateway: bool) -> markdown.Markdown:
-    engine = Markdown(
+    return Markdown(
         realm_filters=realm_filters,
         realm=realm_filters_key,
         code_block_processor_disabled=email_gateway,
@@ -2038,7 +2040,6 @@ def build_engine(realm_filters: List[Tuple[str, str, int]],
                 guess_lang=False,
             ),
         ])
-    return engine
 
 # Split the topic name into multiple sections so that we can easily use
 # our common single link matching regex on it.
@@ -2207,8 +2208,7 @@ def get_user_group_name_info(realm_id: int, user_group_names: Set[str]) -> Dict[
 
     rows = UserGroup.objects.filter(realm_id=realm_id,
                                     name__in=user_group_names)
-    dct = {row.name.lower(): row for row in rows}
-    return dct
+    return {row.name.lower(): row for row in rows}
 
 def get_stream_name_info(realm: Realm, stream_names: Set[str]) -> Dict[str, FullNameInfo]:
     if not stream_names:
@@ -2228,11 +2228,10 @@ def get_stream_name_info(realm: Realm, stream_names: Set[str]) -> Dict[str, Full
         'name',
     )
 
-    dct = {
+    return {
         row['name']: row
         for row in rows
     }
-    return dct
 
 
 def do_convert(content: str,
@@ -2249,9 +2248,8 @@ def do_convert(content: str,
     # * Nothing is passed in other than content -> just run default options (e.g. for docs)
     # * message is passed, but no realm is -> look up realm from message
     # * message_realm is passed -> use that realm for markdown purposes
-    if message is not None:
-        if message_realm is None:
-            message_realm = message.get_realm()
+    if message is not None and message_realm is None:
+        message_realm = message.get_realm()
     if message_realm is None:
         realm_filters_key = DEFAULT_MARKDOWN_KEY
     else:
@@ -2262,12 +2260,15 @@ def do_convert(content: str,
     else:
         logging_message_id = 'unknown'
 
-    if message is not None and message_realm is not None:
-        if message_realm.is_zephyr_mirror_realm:
-            if message.sending_client.name == "zephyr_mirror":
-                # Use slightly customized Markdown processor for content
-                # delivered via zephyr_mirror
-                realm_filters_key = ZEPHYR_MIRROR_MARKDOWN_KEY
+    if (
+        message is not None
+        and message_realm is not None
+        and message_realm.is_zephyr_mirror_realm
+        and message.sending_client.name == "zephyr_mirror"
+    ):
+        # Use slightly customized Markdown processor for content
+        # delivered via zephyr_mirror
+        realm_filters_key = ZEPHYR_MIRROR_MARKDOWN_KEY
 
     maybe_update_markdown_engines(realm_filters_key, email_gateway)
     md_engine_key = (realm_filters_key, email_gateway)
@@ -2309,7 +2310,7 @@ def do_convert(content: str,
         if content_has_emoji_syntax(content):
             active_realm_emoji = message_realm.get_active_emoji()
         else:
-            active_realm_emoji = dict()
+            active_realm_emoji = {}
 
         _md_engine.zulip_db_data = {
             'realm_alert_words_automaton': realm_alert_words_automaton,

@@ -41,11 +41,10 @@ def create_var_directories() -> None:
         os.makedirs(path, exist_ok=True)
 
 def build_pygments_data_paths() -> List[str]:
-    paths = [
+    return [
         "tools/setup/build_pygments_data",
         "tools/setup/lang.json",
     ]
-    return paths
 
 def compilemessages_paths() -> List[str]:
     paths = ['zerver/management/commands/compilemessages.py']
@@ -62,10 +61,9 @@ def inline_email_css_paths() -> List[str]:
     return paths
 
 def configure_rabbitmq_paths() -> List[str]:
-    paths = [
+    return [
         "scripts/setup/configure-rabbitmq",
     ]
-    return paths
 
 def setup_shell_profile(shell_profile: str) -> None:
     shell_profile_path = os.path.expanduser(shell_profile)
@@ -101,12 +99,12 @@ def setup_bash_profile() -> None:
         # provisioning scripts), check for this situation, and blow away the
         # created .bash_profile if one is found.
 
-        BASH_PROFILE = BASH_PROFILES[0]
         DOT_PROFILE = BASH_PROFILES[2]
-        OLD_PROFILE_TEXT = "source /srv/zulip-py3-venv/bin/activate\n" + \
-            "cd /srv/zulip\n"
-
         if os.path.exists(DOT_PROFILE):
+            BASH_PROFILE = BASH_PROFILES[0]
+            OLD_PROFILE_TEXT = "source /srv/zulip-py3-venv/bin/activate\n" + \
+                "cd /srv/zulip\n"
+
             try:
                 with open(BASH_PROFILE) as f:
                     profile_contents = f.read()

@@ -109,10 +109,7 @@ def render_python_code_example(function: str, admin_config: bool=False,
 
     snippets = extract_code_example(function_source_lines, [], PYTHON_EXAMPLE_REGEX)
 
-    code_example = []
-    code_example.append('```python')
-    code_example.extend(config)
-
+    code_example = ['```python', *config]
     for snippet in snippets:
         for line in snippet:
             # Remove one level of indentation and strip newlines
@@ -144,9 +141,7 @@ def render_javascript_code_example(function: str, admin_config: bool=False,
     else:
         config = JS_CLIENT_CONFIG.splitlines()
 
-    code_example = []
-    code_example.append('```js')
-    code_example.extend(config)
+    code_example = ['```js', *config]
     for snippet in snippets:
         code_example.append("Zulip(config).then(async (client) => {")
         for line in snippet:

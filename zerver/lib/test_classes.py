@@ -351,8 +351,7 @@ class ZulipTestCase(TestCase):
         result = self.client_post("/json/bots", bot_info)
         self.assert_json_success(result)
         bot_email = f'{short_name}-bot@zulip.testserver'
-        bot_profile = get_user(bot_email, user_profile.realm)
-        return bot_profile
+        return get_user(bot_email, user_profile.realm)
 
     def fail_to_create_test_bot(
         self, short_name: str,
@@ -621,8 +620,7 @@ class ZulipTestCase(TestCase):
                        "num_after": num_after,
                        "use_first_unread_anchor": ujson.dumps(use_first_unread_anchor)}
         result = self.client_get("/json/messages", dict(post_params))
-        data = result.json()
-        return data
+        return result.json()
 
     def get_messages(self, anchor: Union[str, int]=1, num_before: int=100, num_after: int=100,
                      use_first_unread_anchor: bool=False) -> List[Dict[str, Any]]:
@@ -870,8 +868,7 @@ class ZulipTestCase(TestCase):
         return output_dir
 
     def get_set(self, data: List[Dict[str, Any]], field: str) -> Set[str]:
-        values = {r[field] for r in data}
-        return values
+        return {r[field] for r in data}
 
     def find_by_id(self, data: List[Dict[str, Any]], db_id: int) -> Dict[str, Any]:
         return [

@@ -188,8 +188,6 @@ class Command(makemessages.Command):
         return self.frontend_namespace
 
     def get_locales(self) -> Iterable[str]:
-        locale = self.frontend_locale
-        exclude = self.frontend_exclude
         process_all = self.frontend_all
 
         paths = glob.glob(f'{self.default_locale_path}/*')
@@ -199,7 +197,9 @@ class Command(makemessages.Command):
         if process_all:
             return all_locales
         else:
+            locale = self.frontend_locale
             locales = locale or all_locales
+            exclude = self.frontend_exclude
             return set(locales) - set(exclude)
 
     def get_base_path(self) -> str:

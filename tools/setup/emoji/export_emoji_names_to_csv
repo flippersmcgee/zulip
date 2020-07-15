@@ -69,9 +69,7 @@ def prepare_explanation(explanation_lines: List[str]) -> str:
     return ' '.join(explanation_lines)
 
 def prepare_aliases(captured_aliases: str) -> str:
-    aliases = []
-    for alias in captured_aliases.split(', '):
-        aliases.append(alias.strip("'"))
+    aliases = [alias.strip("'") for alias in captured_aliases.split(', ')]
     return ', '.join(aliases)
 
 def main() -> None:

@@ -102,8 +102,7 @@ def build_user_profile(avatar_source: str,
         short_name=short_name,
         timezone=timezone,
     )
-    dct = model_to_dict(obj)
-    return dct
+    return model_to_dict(obj)
 
 def build_avatar(zulip_user_id: int, realm_id: int, email: str, avatar_url: str,
                  timestamp: Any, avatar_list: List[ZerverFieldsT]) -> None:
@@ -295,8 +294,7 @@ def build_recipient(type_id: int, recipient_id: int, type: int) -> ZerverFieldsT
         type_id=type_id,  # stream id
         id=recipient_id,
         type=type)
-    recipient_dict = model_to_dict(recipient)
-    return recipient_dict
+    return model_to_dict(recipient)
 
 def build_recipients(zerver_userprofile: Iterable[ZerverFieldsT],
                      zerver_stream: Iterable[ZerverFieldsT],
@@ -345,26 +343,33 @@ def build_recipients(zerver_userprofile: Iterable[ZerverFieldsT],
 
 def build_realm(zerver_realm: List[ZerverFieldsT], realm_id: int,
                 domain_name: str) -> ZerverFieldsT:
-    realm = dict(zerver_client=[{"name": "populate_db", "id": 1},
-                                {"name": "website", "id": 2},
-                                {"name": "API", "id": 3}],
-                 zerver_customprofilefield=[],
-                 zerver_customprofilefieldvalue=[],
-                 zerver_userpresence=[],  # shows last logged in data, which is not available
-                 zerver_userprofile_mirrordummy=[],
-                 zerver_realmdomain=[{"realm": realm_id,
-                                      "allow_subdomains": False,
-                                      "domain": domain_name,
-                                      "id": realm_id}],
-                 zerver_useractivity=[],
-                 zerver_realm=zerver_realm,
-                 zerver_huddle=[],
-                 zerver_userprofile_crossrealm=[],
-                 zerver_useractivityinterval=[],
-                 zerver_reaction=[],
-                 zerver_realmemoji=[],
-                 zerver_realmfilter=[])
-    return realm
+    return dict(
+        zerver_client=[
+            {"name": "populate_db", "id": 1},
+            {"name": "website", "id": 2},
+            {"name": "API", "id": 3},
+        ],
+        zerver_customprofilefield=[],
+        zerver_customprofilefieldvalue=[],
+        zerver_userpresence=[],  # shows last logged in data, which is not available
+        zerver_userprofile_mirrordummy=[],
+        zerver_realmdomain=[
+            {
+                "realm": realm_id,
+                "allow_subdomains": False,
+                "domain": domain_name,
+                "id": realm_id,
+            }
+        ],
+        zerver_useractivity=[],
+        zerver_realm=zerver_realm,
+        zerver_huddle=[],
+        zerver_userprofile_crossrealm=[],
+        zerver_useractivityinterval=[],
+        zerver_reaction=[],
+        zerver_realmemoji=[],
+        zerver_realmfilter=[],
+    )
 
 def build_usermessages(zerver_usermessage: List[ZerverFieldsT],
                        subscriber_map: Dict[int, Set[int]],
@@ -409,21 +414,19 @@ def build_user_message(user_id: int,
 
     id = NEXT_ID('user_message')
 
-    usermessage = dict(
+    return dict(
         id=id,
         user_profile=user_id,
         message=message_id,
         flags_mask=flags_mask,
     )
-    return usermessage
 
 def build_defaultstream(realm_id: int, stream_id: int,
                         defaultstream_id: int) -> ZerverFieldsT:
-    defaultstream = dict(
+    return dict(
         stream=stream_id,
         realm=realm_id,
         id=defaultstream_id)
-    return defaultstream
 
 def build_stream(date_created: Any, realm_id: int, name: str,
                  description: str, stream_id: int, deactivated: bool=False,

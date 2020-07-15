@@ -136,11 +136,9 @@ parser.add_argument('--disable-host-check',
                     help='Disable host check for webpack-dev-server')
 
 args = parser.parse_args()
-if "CASPER_TESTS" in os.environ:
+if "CASPER_TESTS" in os.environ or not args.test and not args.watch:
     build_for_prod_or_casper(args.quiet)
 elif args.test:
     build_for_most_tests()
-elif args.watch:
-    build_for_dev_server(args.host, args.port, args.minify, args.disable_host_check)
 else:
-    build_for_prod_or_casper(args.quiet)
+    build_for_dev_server(args.host, args.port, args.minify, args.disable_host_check)

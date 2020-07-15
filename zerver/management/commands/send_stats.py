@@ -16,12 +16,12 @@ class Command(BaseCommand):
         parser.add_argument('val', metavar='<val>', type=str)
 
     def handle(self, *args: Any, **options: str) -> None:
-        operation = options['operation']
-        name = options['name']
-        val = options['val']
-
         if settings.STATSD_HOST != '':
             from statsd import statsd
 
+            operation = options['operation']
             func = getattr(statsd, operation)
+            name = options['name']
+            val = options['val']
+
             func(name, val)

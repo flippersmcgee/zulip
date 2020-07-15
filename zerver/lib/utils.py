@@ -35,10 +35,7 @@ class StatsDWrapper:
     def _our_gauge(self, stat: str, value: float, rate: float=1, delta: bool=False) -> None:
         """Set a gauge value."""
         from django_statsd.clients import statsd
-        if delta:
-            value_str = f'{value:+g}|g'
-        else:
-            value_str = f'{value:g}|g'
+        value_str = f'{value:+g}|g' if delta else f'{value:g}|g'
         statsd._send(stat, value_str, rate)
 
     def __getattr__(self, name: str) -> Any:
@@ -113,8 +110,7 @@ def generate_random_token(length: int) -> str:
 def generate_api_key() -> str:
     choices = string.ascii_letters + string.digits
     altchars = ''.join([choices[ord(os.urandom(1)) % 62] for _ in range(2)]).encode("utf-8")
-    api_key = base64.b64encode(os.urandom(24), altchars=altchars).decode("utf-8")
-    return api_key
+    return base64.b64encode(os.urandom(24), altchars=altchars).decode("utf-8")
 
 def has_api_key_format(key: str) -> bool:
     return bool(re.fullmatch(r"([A-Za-z0-9]){32}", key))
@@ -155,7 +151,7 @@ def query_chunker(queries: List[Any],
         while True:
             assert db_chunk_size is not None  # Hint for mypy, but also workaround for mypy bug #3442.
             rows = list(q.filter(id__gt=min_id)[0:db_chunk_size])
-            if len(rows) == 0:
+            if not rows:
                 break
             for row in rows:
                 yield (row.id, i, row)

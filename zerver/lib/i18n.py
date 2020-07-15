@@ -37,7 +37,7 @@ def get_language_list_for_templates(default_language: str) -> List[Dict[str, Dic
     formatted_list = []
     lang_len = len(language_list)
     firsts_end = (lang_len // 2) + operator.mod(lang_len, 2)
-    firsts = list(range(0, firsts_end))
+    firsts = list(range(firsts_end))
     seconds = list(range(firsts_end, lang_len))
     assert len(firsts) + len(seconds) == lang_len
     for row in zip_longest(firsts, seconds):
@@ -76,8 +76,7 @@ def get_language_name(code: str) -> str:
 
 def get_available_language_codes() -> List[str]:
     language_list = get_language_list()
-    codes = [language['code'] for language in language_list]
-    return codes
+    return [language['code'] for language in language_list]
 
 def get_language_translation_data(language: str) -> Dict[str, str]:
     if language == 'zh-hans':

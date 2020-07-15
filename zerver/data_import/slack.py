@@ -321,8 +321,7 @@ def get_user_email(user: ZerverFieldsT, domain_name: str) -> str:
     raise AssertionError(f"Could not find email address for Slack user {user}")
 
 def build_avatar_url(slack_user_id: str, team_id: str, avatar_hash: str) -> str:
-    avatar_url = f"https://ca.slack-edge.com/{team_id}-{slack_user_id}-{avatar_hash}"
-    return avatar_url
+    return f"https://ca.slack-edge.com/{team_id}-{slack_user_id}-{avatar_hash}"
 
 def get_owner(user: ZerverFieldsT) -> bool:
     owner = user.get('is_owner', False)
@@ -331,8 +330,7 @@ def get_owner(user: ZerverFieldsT) -> bool:
     return primary_owner or owner
 
 def get_admin(user: ZerverFieldsT) -> bool:
-    admin = user.get('is_admin', False)
-    return admin
+    return user.get('is_admin', False)
 
 def get_guest(user: ZerverFieldsT) -> bool:
     restricted_user = user.get('is_restricted', False)
@@ -389,6 +387,7 @@ def channels_to_zerver_stream(slack_data_dir: str, realm_id: int,
         nonlocal defaultstream_id
         nonlocal subscription_id_count
 
+        slack_default_channels = ['general', 'random']
         for channel in channels:
             # map Slack's topic and purpose content into Zulip's stream description.
             # WARN This mapping is lossy since the topic.creator, topic.last_set,
@@ -401,7 +400,6 @@ def channels_to_zerver_stream(slack_data_dir: str, realm_id: int,
                                   description, stream_id, channel["is_archived"], invite_only)
             realm["zerver_stream"].append(stream)
 
-            slack_default_channels = ['general', 'random']
             if channel['name'] in slack_default_channels and not stream['deactivated']:
                 defaultstream = build_defaultstream(realm_id, stream_id,
                                                     defaultstream_id)
@@ -604,7 +602,7 @@ def convert_slack_workspace_messages(slack_data_dir: str, users: List[ZerverFiel
             message_data.append(msg)
             if _counter == chunk_size:
                 break
-        if len(message_data) == 0:
+        if not message_data:
             break
 
         zerver_message, zerver_usermessage, attachment, uploads, reactions = \
@@ -1122,8 +1120,7 @@ def do_convert_data(slack_zip_file: str, output_dir: str, token: str, threads: i
 
 def get_data_file(path: str) -> Any:
     with open(path) as fp:
-        data = ujson.load(fp)
-        return data
+        return ujson.load(fp)
 
 def log_token_warning(token: str) -> None:
     if not token.startswith("xoxp-"):

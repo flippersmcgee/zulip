@@ -186,8 +186,7 @@ def transform_url(protocol: str, path: str, query: str, target_port: int, target
     # what we will have for production
     if path.startswith('/thumbor'):
         path = path[len('/thumbor'):]
-    newpath = urlunparse((protocol, host, path, '', query, ''))
-    return newpath
+    return urlunparse((protocol, host, path, '', query, ''))
 
 @gen.engine
 def fetch_request(url: str, callback: Any, **kwargs: Any) -> "Generator[Callable[..., Any], Any, None]":

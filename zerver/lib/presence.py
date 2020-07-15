@@ -64,7 +64,7 @@ def get_modern_user_info(presence_rows: List[Dict[str, Any]],
     # Be stingy about bandwidth, and don't even include
     # keys for entities that have None values.  JS
     # code should just do a falsy check here.
-    result = dict()
+    result = {}
 
     if active_timestamp is not None:
         result['active_timestamp'] = active_timestamp
@@ -164,7 +164,7 @@ def get_status_dict_by_realm(realm_id: int, slim_presence: bool = False) -> Dict
     )
 
     user_profile_ids = [presence_row['user_profile__id'] for presence_row in presence_rows]
-    if len(user_profile_ids) == 0:
+    if not user_profile_ids:
         # This conditional is necessary because query_for_ids
         # throws an exception if passed an empty list.
         #

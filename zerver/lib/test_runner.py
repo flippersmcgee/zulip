@@ -197,9 +197,7 @@ def init_worker(counter: Synchronized) -> None:
     initialize_worker_path(_worker_id)
 
     def is_upload_avatar_url(url: URLPattern) -> bool:
-        if url.pattern.regex.pattern == r'^user_avatars/(?P<path>.*)$':
-            return True
-        return False
+        return url.pattern.regex.pattern == r'^user_avatars/(?P<path>.*)$'
 
     # We manually update the upload directory path in the url regex.
     from zproject import dev_urls
@@ -272,7 +270,7 @@ class Runner(DiscoverRunner):
         if hasattr(sender, 'template'):
             template_name = sender.template.name
             if template_name not in self.templates_rendered:
-                if context.get('shallow_tested') and template_name not in self.templates_rendered:
+                if context.get('shallow_tested'):
                     self.shallow_tested_templates.add(template_name)
                 else:
                     self.templates_rendered.add(template_name)

@@ -71,9 +71,11 @@ def get_avatar_field(user_id: int,
         will return None and let the client compute the gravatar
         url.
         '''
-        if settings.ENABLE_GRAVATAR:
-            if avatar_source == UserProfile.AVATAR_FROM_GRAVATAR:
-                return None
+        if (
+            settings.ENABLE_GRAVATAR
+            and avatar_source == UserProfile.AVATAR_FROM_GRAVATAR
+        ):
+            return None
 
     '''
     If we get this far, we'll compute an avatar URL that may be

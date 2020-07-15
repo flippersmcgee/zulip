@@ -23,11 +23,13 @@ def migrate_existing_attachment_data(apps: StateApps,
         owner = entry.owner
         entry.realm = owner.realm
         for message in entry.messages.all():
-            if owner == message.sender:
-                if message.recipient.type == Recipient.STREAM:
-                    stream = Stream.objects.get(id=message.recipient.type_id)
-                    is_realm_public = not stream.realm.is_zephyr_mirror_realm and not stream.invite_only
-                    entry.is_realm_public = entry.is_realm_public or is_realm_public
+            if (
+                owner == message.sender
+                and message.recipient.type == Recipient.STREAM
+            ):
+                stream = Stream.objects.get(id=message.recipient.type_id)
+                is_realm_public = not stream.realm.is_zephyr_mirror_realm and not stream.invite_only
+                entry.is_realm_public = entry.is_realm_public or is_realm_public
 
         entry.save()
 

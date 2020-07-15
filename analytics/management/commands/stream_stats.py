@@ -42,10 +42,7 @@ class Command(BaseCommand):
             print("{:>25} {:>15} {:>10} {:>12}".format("stream", "subscribers", "messages", "type"))
 
             for stream in streams:
-                if stream.invite_only:
-                    stream_type = 'private'
-                else:
-                    stream_type = 'public'
+                stream_type = 'private' if stream.invite_only else 'public'
                 print(f"{stream.name:>25}", end=' ')
                 recipient = Recipient.objects.filter(type=Recipient.STREAM, type_id=stream.id)
                 print("{:10}".format(len(Subscription.objects.filter(recipient=recipient,
