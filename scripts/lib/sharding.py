@@ -26,8 +26,7 @@ def write_realm_nginx_config_line(f: Any, host: str, port: str) -> None:
 # after changing.  TODO: We can probably make this live-reload by statting the file.
 #
 # TODO: Restructure this to automatically generate a sharding layout.
-with open('/etc/zulip/nginx_sharding.conf.tmp', 'w') as nginx_sharding_conf_f, \
-        open('/etc/zulip/sharding.json.tmp', 'w') as sharding_json_f:
+with open('/etc/zulip/nginx_sharding.conf.tmp', 'w') as nginx_sharding_conf_f, open('/etc/zulip/sharding.json.tmp', 'w') as sharding_json_f:
 
     config_file = get_config_file()
     if not config_file.has_section("tornado_sharding"):
@@ -44,10 +43,7 @@ with open('/etc/zulip/nginx_sharding.conf.tmp', 'w') as nginx_sharding_conf_f, \
         shards = config_file["tornado_sharding"][port].strip().split(' ')
 
         for shard in shards:
-            if '.' in shard:
-                host = shard
-            else:
-                host = f"{shard}.{external_host}"
+            host = shard if '.' in shard else f"{shard}.{external_host}"
             assert host not in shard_map, f"host {host} duplicated"
             shard_map[host] = int(port)
             write_realm_nginx_config_line(nginx_sharding_conf_f, host, port)

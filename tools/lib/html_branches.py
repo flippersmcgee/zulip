@@ -114,10 +114,10 @@ def split_for_id_and_class(element: str) -> List[str]:
     for ch in element:
         if ch == '{':
             outside_braces = False
-        if ch == '}':
+        elif ch == '}':
             outside_braces = True
         if ch == ' ' and outside_braces:
-            if not s == '':
+            if s != '':
                 lst.append(s)
             s = ''
         else:

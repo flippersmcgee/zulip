@@ -159,7 +159,7 @@ def resize_gif(im: GifImageFile, size: int=DEFAULT_EMOJI_SIZE) -> bytes:
     duration_info = []
     # If 'loop' info is not set then loop for infinite number of times.
     loop = im.info.get("loop", 0)
-    for frame_num in range(0, im.n_frames):
+    for frame_num in range(im.n_frames):
         im.seek(frame_num)
         new_frame = Image.new("RGBA", im.size)
         new_frame.paste(im, (0, 0), im.convert("RGBA"))
@@ -490,10 +490,7 @@ class S3UploadBackend(ZulipUploadBackend):
     def upload_realm_logo_image(self, logo_file: File, user_profile: UserProfile,
                                 night: bool) -> None:
         content_type = guess_type(logo_file.name)[0]
-        if night:
-            basename = 'night_logo'
-        else:
-            basename = 'logo'
+        basename = 'night_logo' if night else 'logo'
         s3_file_name = os.path.join(self.realm_avatar_and_logo_path(user_profile.realm), basename)
 
         image_data = logo_file.read()
@@ -518,10 +515,7 @@ class S3UploadBackend(ZulipUploadBackend):
 
     def get_realm_logo_url(self, realm_id: int, version: int, night: bool) -> str:
         # ?x=x allows templates to append additional parameters with &s
-        if not night:
-            file_name = 'logo.png'
-        else:
-            file_name = 'night_logo.png'
+        file_name = 'logo.png' if not night else 'night_logo.png'
         return f"{self.avatar_bucket_url}/{realm_id}/realm/{file_name}?version={version}"
 
     def ensure_medium_avatar_image(self, user_profile: UserProfile) -> None:
@@ -761,10 +755,7 @@ class LocalUploadBackend(ZulipUploadBackend):
 
     def get_realm_logo_url(self, realm_id: int, version: int, night: bool) -> str:
         # ?x=x allows templates to append additional parameters with &s
-        if night:
-            file_name = 'night_logo.png'
-        else:
-            file_name = 'logo.png'
+        file_name = 'night_logo.png' if night else 'logo.png'
         return f"/user_avatars/{realm_id}/realm/{file_name}?version={version}"
 
     def ensure_medium_avatar_image(self, user_profile: UserProfile) -> None:
@@ -827,8 +818,7 @@ class LocalUploadBackend(ZulipUploadBackend):
         abs_path = os.path.join(settings.LOCAL_UPLOADS_DIR, 'avatars', path)
         os.makedirs(os.path.dirname(abs_path), exist_ok=True)
         shutil.copy(tarball_path, abs_path)
-        public_url = realm.uri + '/user_avatars/' + path
-        return public_url
+        return realm.uri + '/user_avatars/' + path
 
     def delete_export_tarball(self, path_id: str) -> Optional[str]:
         # Get the last element of a list in the form ['user_avatars', '<file_path>']

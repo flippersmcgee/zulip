@@ -51,10 +51,10 @@ def compute_stats(log_level: int) -> None:
                                      key=lambda x: -total_user_counts[x])):
         percent_zulip = round(100 - (user_counts[email].get("zephyr_mirror", 0)) * 100. /
                               total_user_counts[email], 1)
-        for size in top_percents.keys():
+        for size, value in top_percents.items():
             top_percents.setdefault(size, 0)
             if i < size:
-                top_percents[size] += (percent_zulip * 1.0 / size)
+                value += (percent_zulip * 1.0 / size)
 
         logging.debug("%40s | %10s | %s%%", email, total_user_counts[email],
                       percent_zulip)
@@ -66,7 +66,7 @@ def compute_stats(log_level: int) -> None:
     grand_total = sum(total_counts.values())
     print(grand_total)
     logging.info("%15s | %s", "Client", "Percentage")
-    for client in total_counts.keys():
+    for client in total_counts:
         logging.info("%15s | %s%%", client, round(100. * total_counts[client] / grand_total, 1))
 
 class Command(BaseCommand):

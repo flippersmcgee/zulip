@@ -102,9 +102,7 @@ def get_deployment_version(extract_path: str) -> str:
     return version
 
 def is_invalid_upgrade(current_version: str, new_version: str) -> bool:
-    if new_version > '1.4.3' and current_version <= '1.3.10':
-        return True
-    return False
+    return new_version > '1.4.3' and current_version <= '1.3.10'
 
 def subprocess_text_output(args: Sequence[str]) -> str:
     return subprocess.check_output(args, universal_newlines=True).strip()
@@ -256,8 +254,7 @@ def get_threshold_timestamp(threshold_days: int) -> int:
     # Given number of days, this function returns timestamp corresponding
     # to the time prior to given number of days.
     threshold = datetime.datetime.now() - datetime.timedelta(days=threshold_days)
-    threshold_timestamp = int(time.mktime(threshold.utctimetuple()))
-    return threshold_timestamp
+    return int(time.mktime(threshold.utctimetuple()))
 
 def get_caches_to_be_purged(caches_dir: str, caches_in_use: Set[str], threshold_days: int) -> Set[str]:
     # Given a directory containing caches, a list of caches in use
@@ -448,9 +445,7 @@ def write_new_digest(hash_name: str,
     print('New digest written to: ' + hash_path)
 
 def is_root() -> bool:
-    if 'posix' in os.name and os.geteuid() == 0:
-        return True
-    return False
+    return 'posix' in os.name and os.geteuid() == 0
 
 def run_as_root(args: List[str], **kwargs: Any) -> None:
     sudo_args = kwargs.pop('sudo_args', [])

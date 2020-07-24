@@ -28,7 +28,7 @@ def move_missed_message_addresses_to_database(apps: StateApps, schema_editor: Da
             continue
 
         result = redis_client.hmget(key, 'user_profile_id', 'recipient_id', 'subject')
-        if not all(val is not None for val in result):
+        if any(val is None for val in result):
             # Missing data, skip this key; this should never happen
             redis_client.delete(key)
             continue

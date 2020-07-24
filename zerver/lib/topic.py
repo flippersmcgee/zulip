@@ -111,7 +111,7 @@ def update_messages_for_topic_edit(message: Message,
     propagate_query = Q(recipient = message.recipient, subject__iexact = orig_topic_name)
     if propagate_mode == 'change_all':
         propagate_query = propagate_query & ~Q(id = message.id)
-    if propagate_mode == 'change_later':
+    elif propagate_mode == 'change_later':
         propagate_query = propagate_query & Q(id__gt = message.id)
 
     messages = Message.objects.filter(propagate_query).select_related()
@@ -150,12 +150,14 @@ def generate_topic_history_from_db_rows(rows: List[Tuple[str, int]]) -> List[Dic
         canonical_name = topic_name.lower()
         canonical_topic_names[canonical_name] = (max_message_id, topic_name)
 
-    history = []
-    for canonical_topic, (max_message_id, topic_name) in canonical_topic_names.items():
-        history.append(dict(
-            name=topic_name,
-            max_id=max_message_id),
-        )
+    history = [
+        dict(name=topic_name, max_id=max_message_id)
+        for canonical_topic, (
+            max_message_id,
+            topic_name,
+        ) in canonical_topic_names.items()
+    ]
+
     return sorted(history, key=lambda x: -x['max_id'])
 
 def get_topic_history_for_stream(user_profile: UserProfile,

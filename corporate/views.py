@@ -62,9 +62,8 @@ def check_upgrade_parameters(
     if license_management not in ['automatic', 'manual']:
         raise BillingError('unknown license_management')
 
-    if billing_modality == 'charge_automatically':
-        if not has_stripe_token:
-            raise BillingError('autopay with no card')
+    if billing_modality == 'charge_automatically' and not has_stripe_token:
+        raise BillingError('autopay with no card')
 
     min_licenses = seat_count
     max_licenses = None
@@ -181,8 +180,7 @@ def initial_upgrade(request: HttpRequest) -> HttpResponse:
             'percent_off': float(percent_off),
         },
     }
-    response = render(request, 'corporate/upgrade.html', context=context)
-    return response
+    return render(request, 'corporate/upgrade.html', context=context)
 
 @has_request_variables
 def sponsorship(request: HttpRequest, user: UserProfile,

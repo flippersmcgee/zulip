@@ -338,10 +338,7 @@ def current_table_ids(data: TableData, table: TableName) -> List[int]:
     """
     Returns the ids present in the current table
     """
-    id_list = []
-    for item in data[table]:
-        id_list.append(item["id"])
-    return id_list
+    return [item["id"] for item in data[table]]
 
 def idseq(model_class: Any) -> str:
     if model_class == RealmDomain:
@@ -450,10 +447,7 @@ def re_map_foreign_keys_internal(data_table: List[Record],
             item[field_name + "_id"] = new_id
             del item[field_name]
         else:
-            if reaction_field:
-                item[field_name] = str(new_id)
-            else:
-                item[field_name] = new_id
+            item[field_name] = str(new_id) if reaction_field else new_id
 
 def re_map_foreign_keys_many_to_many(data: TableData,
                                      table: TableName,
@@ -1049,10 +1043,7 @@ def do_import_realm(import_dir: Path, subdomain: str, processes: int=1) -> Realm
     for stream in Stream.objects.filter(realm=realm):
         recipient = Recipient.objects.get(type=Recipient.STREAM, type_id=stream.id)
         first_message = Message.objects.filter(recipient=recipient).first()
-        if first_message is None:
-            stream.first_message_id = None
-        else:
-            stream.first_message_id = first_message.id
+        stream.first_message_id = None if first_message is None else first_message.id
         stream.save(update_fields=["first_message_id"])
 
     # Do attachments AFTER message data is loaded.

@@ -242,11 +242,7 @@ def validate(fn: Optional[str] = None, text: Optional[str] = None, check_indent:
             end_line = end_token.line
             end_col = end_token.col
 
-            if start_tag == 'a':
-                max_lines = 3
-            else:
-                max_lines = 1
-
+            max_lines = 3 if start_tag == 'a' else 1
             problem = None
             if (start_tag == 'code') and (end_line == start_line + 1):
                 problem = 'Code tag is split across two lines.'
@@ -310,7 +306,7 @@ def is_self_closing_html_tag(s: Text, tag: Text) -> bool:
         if tag in OPTIONAL_CLOSING_TAGS:
             return True
         raise TokenizationException('Singleton tag not allowed', tag)
-    self_closing_tag = tag in [
+    return tag in [
         'area',
         'base',
         'br',
@@ -324,9 +320,6 @@ def is_self_closing_html_tag(s: Text, tag: Text) -> bool:
         'track',
         'wbr',
     ]
-    if self_closing_tag:
-        return True
-    return False
 
 def is_django_block_tag(tag: str) -> bool:
     return tag in [
@@ -350,8 +343,7 @@ def get_handlebars_tag(text: str, i: int) -> str:
         end += 1
     if text[end] != '}' or text[end+1] != '}':
         raise TokenizationException('Tag missing "}}"', text[i:end+2])
-    s = text[i:end+2]
-    return s
+    return text[i:end+2]
 
 def get_django_tag(text: str, i: int, stripped: bool = False) -> str:
     end = i + 2
@@ -361,8 +353,7 @@ def get_django_tag(text: str, i: int, stripped: bool = False) -> str:
         end += 1
     if text[end] != '%' or text[end+1] != '}':
         raise TokenizationException('Tag missing "%}"', text[i:end+2])
-    s = text[i:end+2]
-    return s
+    return text[i:end+2]
 
 def get_html_tag(text: str, i: int) -> str:
     quote_count = 0
@@ -381,8 +372,7 @@ def get_html_tag(text: str, i: int) -> str:
             raise TokenizationException('Unbalanced Quotes', text[i:end+1])
     if end == len(text) or text[end] != '>':
         raise TokenizationException('Tag missing ">"', text[i:end+1])
-    s = text[i:end+1]
-    return s
+    return text[i:end+1]
 
 def get_html_comment(text: str, i: int) -> str:
     end = i + 7

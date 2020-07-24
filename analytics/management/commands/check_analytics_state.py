@@ -68,9 +68,9 @@ class Command(BaseCommand):
             elif time_to_last_fill > warning_threshold:
                 warning_unfilled_properties.append(property)
 
-        if len(critical_unfilled_properties) == 0 and len(warning_unfilled_properties) == 0:
+        if not critical_unfilled_properties and not warning_unfilled_properties:
             return {'status': 0, 'message': 'FillState looks fine.'}
-        if len(critical_unfilled_properties) == 0:
+        if not critical_unfilled_properties:
             return {
                 'status': 1,
                 'message': 'Missed filling {} once.'.format(

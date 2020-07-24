@@ -240,21 +240,20 @@ def fetch_initial_state_data(user_profile: UserProfile,
     # This does not yet have an apply_event counterpart, since currently,
     # new entries for EMBEDDED_BOTS can only be added directly in the codebase.
     if want('realm_embedded_bots'):
-        realm_embedded_bots = []
-        for bot in EMBEDDED_BOTS:
-            realm_embedded_bots.append({'name': bot.name,
-                                        'config': load_bot_config_template(bot.name)})
+        realm_embedded_bots = [
+            {'name': bot.name, 'config': load_bot_config_template(bot.name)}
+            for bot in EMBEDDED_BOTS
+        ]
+
         state['realm_embedded_bots'] = realm_embedded_bots
 
     # This does not have an apply_events counterpart either since
     # this data is mostly static.
     if want('realm_incoming_webhook_bots'):
-        realm_incoming_webhook_bots = []
-        for integration in WEBHOOK_INTEGRATIONS:
-            realm_incoming_webhook_bots.append({
+        realm_incoming_webhook_bots = [{
                 'name': integration.name,
                 'config': {c[1]: c[0] for c in integration.config_options},
-            })
+            } for integration in WEBHOOK_INTEGRATIONS]
         state['realm_incoming_webhook_bots'] = realm_incoming_webhook_bots
 
     if want('recent_private_conversations'):
@@ -893,10 +892,7 @@ def do_events_register(user_profile: UserProfile, user_client: Client,
 
     post_process_state(user_profile, ret, notification_settings_null)
 
-    if len(events) > 0:
-        ret['last_event_id'] = events[-1]['id']
-    else:
-        ret['last_event_id'] = -1
+    ret['last_event_id'] = events[-1]['id'] if len(events) > 0 else -1
     return ret
 
 def post_process_state(user_profile: UserProfile, ret: Dict[str, Any],

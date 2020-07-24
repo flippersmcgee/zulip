@@ -446,15 +446,13 @@ def write_message_data(realm_id: int,
     def get_stream_recipient_id(raw_message: ZerverFieldsT) -> int:
         fn_id = raw_message['fn_id']
         stream_id = stream_id_mapper.get(fn_id)
-        recipient_id = stream_id_to_recipient_id[stream_id]
-        return recipient_id
+        return stream_id_to_recipient_id[stream_id]
 
     def get_pm_recipient_id(raw_message: ZerverFieldsT) -> int:
         raw_user_id = raw_message['receiver_id']
         assert(raw_user_id)
         user_id = user_id_mapper.get(raw_user_id)
-        recipient_id = user_id_to_recipient_id[user_id]
-        return recipient_id
+        return user_id_to_recipient_id[user_id]
 
     if message_key in ['UserMessage', 'NotificationMessage']:
         is_pm_data = False

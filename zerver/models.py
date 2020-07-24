@@ -107,10 +107,9 @@ def query_for_ids(query: QuerySet, user_ids: List[int], field: str) -> QuerySet:
     '''
     assert(user_ids)
     clause = f'{field} IN %s'
-    query = query.extra(
+    return query.extra(
         where=[clause], params=(tuple(user_ids),),
     )
-    return query
 
 # Doing 1000 remote cache requests to get_display_recipient is quite slow,
 # so add a local cache as well as the remote cache cache.
@@ -763,11 +762,10 @@ def realm_filters_for_realm(realm_id: int) -> List[Tuple[str, str, int]]:
 
 @cache_with_key(get_realm_filters_cache_key, timeout=3600*24*7)
 def realm_filters_for_realm_remote_cache(realm_id: int) -> List[Tuple[str, str, int]]:
-    filters = []
-    for realm_filter in RealmFilter.objects.filter(realm_id=realm_id):
-        filters.append((realm_filter.pattern, realm_filter.url_format_string, realm_filter.id))
-
-    return filters
+    return [
+        (realm_filter.pattern, realm_filter.url_format_string, realm_filter.id)
+        for realm_filter in RealmFilter.objects.filter(realm_id=realm_id)
+    ]
 
 def all_realm_filters() -> Dict[int, List[Tuple[str, str, int]]]:
     filters: DefaultDict[int, List[Tuple[str, str, int]]] = defaultdict(list)
@@ -1172,14 +1170,14 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     @property
     def is_new_member(self) -> bool:
         diff = (timezone_now() - self.date_joined).days
-        if diff < self.realm.waiting_period_threshold:
-            return True
-        return False
+        return diff < self.realm.waiting_period_threshold
 
     @property
     def is_realm_admin(self) -> bool:
-        return self.role == UserProfile.ROLE_REALM_ADMINISTRATOR or \
-            self.role == UserProfile.ROLE_REALM_OWNER
+        return self.role in [
+            UserProfile.ROLE_REALM_ADMINISTRATOR,
+            UserProfile.ROLE_REALM_OWNER,
+        ]
 
     @is_realm_admin.setter
     def is_realm_admin(self, value: bool) -> None:
@@ -1218,8 +1216,11 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     @property
     def allowed_bot_types(self) -> List[int]:
         allowed_bot_types = []
-        if self.is_realm_admin or \
-                not self.realm.bot_creation_policy == Realm.BOT_CREATION_LIMIT_GENERIC_BOTS:
+        if (
+            self.is_realm_admin
+            or self.realm.bot_creation_policy
+            != Realm.BOT_CREATION_LIMIT_GENERIC_BOTS
+        ):
             allowed_bot_types.append(UserProfile.DEFAULT_BOT)
         allowed_bot_types += [
             UserProfile.INCOMING_WEBHOOK_BOT,
@@ -1241,9 +1242,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     def email_address_is_realm_public(self) -> bool:
         if self.realm.email_address_visibility == Realm.EMAIL_ADDRESS_VISIBILITY_EVERYONE:
             return True
-        if self.is_bot:
-            return True
-        return False
+        return bool(self.is_bot)
 
     def has_permission(self, policy_name: str) -> bool:
         if policy_name not in ['create_stream_policy', 'invite_to_stream_policy']:
@@ -1840,9 +1839,7 @@ class Message(AbstractMessage):
         "status messages" start with /me and have special rendering:
             /me loves chocolate -> Full Name loves chocolate
         """
-        if content.startswith('/me '):
-            return True
-        return False
+        return bool(content.startswith('/me '))
 
 def get_context_for_message(message: Message) -> Sequence[Message]:
     # TODO: Change return type to QuerySet[Message]
@@ -2176,8 +2173,9 @@ def validate_attachment_request(user_profile: UserProfile, path_id: str) -> Opti
 def get_old_unclaimed_attachments(weeks_ago: int) -> Sequence[Attachment]:
     # TODO: Change return type to QuerySet[Attachment]
     delta_weeks_ago = timezone_now() - datetime.timedelta(weeks=weeks_ago)
-    old_attachments = Attachment.objects.filter(messages=None, create_time__lt=delta_weeks_ago)
-    return old_attachments
+    return Attachment.objects.filter(
+        messages=None, create_time__lt=delta_weeks_ago
+    )
 
 class Subscription(models.Model):
     id: int = models.AutoField(auto_created=True, primary_key=True, verbose_name='ID')
@@ -2804,9 +2802,8 @@ def check_valid_user_ids(realm_id: int, val: object,
         except UserProfile.DoesNotExist:
             raise ValidationError(_('Invalid user ID: %d') % (user_id))
 
-        if not allow_deactivated:
-            if not user_profile.is_active:
-                raise ValidationError(_('User with ID %d is deactivated') % (user_id))
+        if not allow_deactivated and not user_profile.is_active:
+            raise ValidationError(_('User with ID %d is deactivated') % (user_id))
 
         if (user_profile.is_bot):
             raise ValidationError(_('User with ID %d is a bot') % (user_id))
@@ -2900,9 +2897,10 @@ class CustomProfileField(models.Model):
         }
 
     def is_renderable(self) -> bool:
-        if self.field_type in [CustomProfileField.SHORT_TEXT, CustomProfileField.LONG_TEXT]:
-            return True
-        return False
+        return self.field_type in [
+            CustomProfileField.SHORT_TEXT,
+            CustomProfileField.LONG_TEXT,
+        ]
 
     def __str__(self) -> str:
         return f"<CustomProfileField: {self.realm} {self.name} {self.field_type} {self.order}>"

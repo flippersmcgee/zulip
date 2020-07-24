@@ -132,7 +132,7 @@ def pretty_print_html(html: str, num_spaces: int = 4) -> str:
                         # We would like singleton tags and tags which spread over
                         # multiple lines to have 2 space indentation.
                         offsets[end_line] -= 2
-                    elif token.line != info['line']:
+                    elif token.line != start_line:
                         offsets[end_line] = info['offset']
                 if token.tag != 'pre' and token.tag != 'script':
                     for line_num in range(start_line + 1, end_line):
@@ -192,7 +192,7 @@ def validate_indent_html(fn: str, fix: bool) -> int:
     with open(fn) as f:
         html = f.read()
     phtml = pretty_print_html(html)
-    if not html.split('\n') == phtml.split('\n'):
+    if html.split('\n') != phtml.split('\n'):
         if fix:
             print(GREEN + "Automatically fixing problems..." + ENDC)
             with open(fn, 'w') as f:

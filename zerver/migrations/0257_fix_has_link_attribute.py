@@ -40,7 +40,7 @@ def process_batch(apps: StateApps, id_start: int, id_end: int, last_id: int) -> 
         # has_image refers to inline image previews, so we just check
         # for the relevant CSS class.
         has_image = False
-        for img in lxml_obj.find_class("message_inline_image"):
+        for _ in lxml_obj.find_class("message_inline_image"):
             has_image = True
             break
 

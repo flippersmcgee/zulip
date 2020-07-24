@@ -142,9 +142,10 @@ def zulip_default_context(request: HttpRequest) -> Dict[str, Any]:
         'platform': platform,
         'allow_search_engine_indexing': allow_search_engine_indexing,
         'landing_page_navbar_message': settings.LANDING_PAGE_NAVBAR_MESSAGE,
+        'OPEN_GRAPH_URL': f'{realm_uri}{request.path}',
     }
 
-    context['OPEN_GRAPH_URL'] = f'{realm_uri}{request.path}'
+
     if realm is not None and realm.icon_source == realm.ICON_UPLOADED:
         context['OPEN_GRAPH_IMAGE'] = urljoin(realm_uri, realm_icon)
 
@@ -198,9 +199,8 @@ def login_context(request: HttpRequest) -> Dict[str, Any]:
     return context
 
 def latest_info_context() -> Dict[str, str]:
-    context = {
+    return {
         'latest_release_version': LATEST_RELEASE_VERSION,
         'latest_major_version': LATEST_MAJOR_VERSION,
         'latest_release_announcement': LATEST_RELEASE_ANNOUNCEMENT,
     }
-    return context

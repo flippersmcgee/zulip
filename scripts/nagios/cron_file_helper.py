@@ -21,7 +21,7 @@ def nagios_from_file(results_file: str) -> Tuple[int, str]:
     else:
         pieces = data.split('|')
 
-        if not len(pieces) == 4:
+        if len(pieces) != 4:
             state = 'UNKNOWN'
             ret = 3
             data = "Results file malformed"

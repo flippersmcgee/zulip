@@ -146,8 +146,7 @@ def generate_emoji_code_to_emoji_names_maps() -> None:
     for emoji_code in EMOJI_NAME_MAPS:
         canonical_name = EMOJI_NAME_MAPS[emoji_code]["canonical_name"]
         aliases = EMOJI_NAME_MAPS[emoji_code]["aliases"]
-        names = [canonical_name]
-        names.extend(aliases)
+        names = [canonical_name, *aliases]
         emoji_code_to_zulip_names[emoji_code] = ", ".join(names)
 
 def get_sorting_info(category: str, sort_order: int) -> str:

@@ -109,7 +109,17 @@ class Addressee:
         if realm is None:
             realm = sender.realm
 
-        if message_type_name == 'stream':
+        if message_type_name == 'private':
+            if not message_to:
+                raise JsonableError(_("Message must have recipients"))
+
+            if isinstance(message_to[0], str):
+                emails = cast(Sequence[str], message_to)
+                return Addressee.for_private(emails, realm)
+            elif isinstance(message_to[0], int):
+                user_ids = cast(Sequence[int], message_to)
+                return Addressee.for_user_ids(user_ids=user_ids, realm=realm)
+        elif message_type_name == 'stream':
             if len(message_to) > 1:
                 raise JsonableError(_("Cannot send to multiple streams"))
 
@@ -132,16 +142,6 @@ class Addressee:
                 return Addressee.for_stream_id(stream_name_or_id, topic_name)
 
             return Addressee.for_stream_name(stream_name_or_id, topic_name)
-        elif message_type_name == 'private':
-            if not message_to:
-                raise JsonableError(_("Message must have recipients"))
-
-            if isinstance(message_to[0], str):
-                emails = cast(Sequence[str], message_to)
-                return Addressee.for_private(emails, realm)
-            elif isinstance(message_to[0], int):
-                user_ids = cast(Sequence[int], message_to)
-                return Addressee.for_user_ids(user_ids=user_ids, realm=realm)
         else:
             raise JsonableError(_("Invalid message type"))
 

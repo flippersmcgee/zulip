@@ -118,7 +118,8 @@ def set_user_data(username: str, userkey_dicts: List[Dict[str, Any]]) -> str:
     server_repo_setup = setup_repo.format(username, "zulip")
     python_api_repo_setup = setup_repo.format(username, "python-zulip-api")
 
-    cloudconf = f"""\
+    print("...returning cloud-config data.")
+    return f"""\
 #!/bin/bash
 
 {setup_zulipdev_ssh_keys}
@@ -131,8 +132,6 @@ su -c '{python_api_repo_setup}' zulipdev
 su -c 'git config --global core.editor nano' zulipdev
 su -c 'git config --global pull.rebase true' zulipdev
 """
-    print("...returning cloud-config data.")
-    return cloudconf
 
 def create_droplet(my_token: str, template_id: str, username: str, tags: List[str], user_data: str) -> str:
     droplet = digitalocean.Droplet(
@@ -169,7 +168,7 @@ def delete_existing_records(records: List[digitalocean.Record], record_name: str
     for record in records:
         if record.name == record_name and record.domain == 'zulipdev.org' and record.type == 'A':
             record.destroy()
-            count = count + 1
+            count += 1
     if count:
         print(f"Deleted {count} existing A records for {record_name}.zulipdev.org.")
 

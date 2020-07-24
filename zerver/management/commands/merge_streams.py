@@ -12,7 +12,7 @@ from zerver.models import Message, Subscription, get_stream
 
 
 def bulk_delete_cache_keys(message_ids_to_clear: List[int]) -> None:
-    while len(message_ids_to_clear) > 0:
+    while message_ids_to_clear:
         batch = message_ids_to_clear[0:5000]
 
         keys_to_delete = [to_dict_cache_key_id(message_id) for message_id in batch]

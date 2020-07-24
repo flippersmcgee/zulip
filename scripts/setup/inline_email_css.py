@@ -75,17 +75,12 @@ def strip_unnecesary_tags(text: str) -> str:
     start = text.find(start_block)
     end = text.rfind(end_block)
     if start != -1 and end != -1:
-        text = text[start:end]
-        return text
+        return text[start:end]
     else:
         raise ValueError(f"Template does not have {start_block} or {end_block}")
 
 def get_all_templates_from_directory(directory: str) -> Set[str]:
-    result = set()
-    for f in os.listdir(directory):
-        if f.endswith('.source.html'):
-            result.add(f)
-    return result
+    return {f for f in os.listdir(directory) if f.endswith('.source.html')}
 
 if __name__ == "__main__":
     templates_to_inline = get_all_templates_from_directory(EMAIL_TEMPLATES_PATH)

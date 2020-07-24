@@ -602,7 +602,7 @@ def clean_archived_data() -> None:
     count = 0
     transaction_ids = list(ArchiveTransaction.objects.filter(
         timestamp__lt=check_date).values_list("id", flat=True))
-    while len(transaction_ids) > 0:
+    while transaction_ids:
         transaction_block = transaction_ids[0:TRANSACTION_DELETION_BATCH_SIZE]
         transaction_ids = transaction_ids[TRANSACTION_DELETION_BATCH_SIZE:]
         ArchiveTransaction.objects.filter(id__in=transaction_block).delete()

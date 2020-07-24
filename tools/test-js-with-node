@@ -251,8 +251,8 @@ def run_tests_via_node_js() -> int:
 
 def check_line_coverage(fn: str, line_coverage: Dict[Any, Any], line_mapping: Dict[Any, Any], log: bool = True) -> bool:
     missing_lines = []
-    for line in line_coverage:
-        if line_coverage[line] == 0:
+    for line, value in line_coverage.items():
+        if value == 0:
             actual_line = line_mapping[line]
             missing_lines.append(str(actual_line["start"]["line"]))
     if missing_lines:
@@ -286,7 +286,7 @@ def enforce_proper_coverage(coverage_json: Any) -> bool:
     coverage_lost = False
     for relative_path in enforce_fully_covered:
         path = ROOT_DIR + "/" + relative_path
-        if not (path in coverage_json):
+        if path not in coverage_json:
             coverage_lost = True
             print_error(f"{relative_path} has no node test coverage")
             continue
@@ -317,17 +317,15 @@ def enforce_proper_coverage(coverage_json: Any) -> bool:
         print("One or more fully covered files are miscategorized.")
         print("Remove the file(s) from EXEMPT_FILES in `tools/test-js-with-node`.")
 
-    problems_encountered = (coverage_lost or coverage_not_enforced)
-    return problems_encountered
+    return (coverage_lost or coverage_not_enforced)
 
 ret = run_tests_via_node_js()
 
-if options.coverage and ret == 0:
-    if not individual_files:
-        coverage_json = read_coverage()
-        problems_encountered = enforce_proper_coverage(coverage_json)
-        if problems_encountered:
-            ret = 1
+if options.coverage and ret == 0 and not individual_files:
+    coverage_json = read_coverage()
+    problems_encountered = enforce_proper_coverage(coverage_json)
+    if problems_encountered:
+        ret = 1
 
 print()
 if ret == 0:

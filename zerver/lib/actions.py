@@ -398,7 +398,7 @@ def add_new_user_history(user_profile: UserProfile, streams: Iterable[Stream]) -
                                              date_sent__gt=one_week_ago).order_by("-id")
     message_ids_to_use = list(reversed(recent_messages.values_list(
         'id', flat=True)[0:ONBOARDING_TOTAL_MESSAGES]))
-    if len(message_ids_to_use) == 0:
+    if not message_ids_to_use:
         return
 
     # Handle the race condition where a message arrives between
@@ -1888,7 +1888,7 @@ def check_send_typing_notification(sender: UserProfile,
                                    operator: str) -> None:
 
     realm = sender.realm
-    if len(user_ids) == 0:
+    if not user_ids:
         raise JsonableError(_('Missing parameter: \'to\' (recipient)'))
     elif operator not in ('start', 'stop'):
         raise JsonableError(_('Invalid \'op\' value (should be start or stop)'))

@@ -264,8 +264,7 @@ class MessageDict:
     @staticmethod
     def to_dict_uncached(messages: List[Message], realm_id: Optional[int]=None) -> Dict[int, bytes]:
         messages_dict = MessageDict.to_dict_uncached_helper(messages, realm_id)
-        encoded_messages = {msg['id']: stringify_message_dict(msg) for msg in messages_dict}
-        return encoded_messages
+        return {msg['id']: stringify_message_dict(msg) for msg in messages_dict}
 
     @staticmethod
     def to_dict_uncached_helper(messages: List[Message],
@@ -483,7 +482,6 @@ class MessageDict:
         '''
 
         recipient_type = obj['recipient_type']
-        recipient_type_id = obj['recipient_type_id']
         sender_is_mirror_dummy = obj['sender_is_mirror_dummy']
         sender_email = obj['sender_email']
         sender_full_name = obj['sender_full_name']
@@ -515,6 +513,7 @@ class MessageDict:
         obj['display_recipient'] = display_recipient
         obj['type'] = display_type
         if obj['type'] == 'stream':
+            recipient_type_id = obj['recipient_type_id']
             obj['stream_id'] = recipient_type_id
 
     @staticmethod
@@ -672,7 +671,7 @@ def render_markdown(message: Message,
     sent_by_bot = sender.is_bot
     translate_emoticons = sender.translate_emoticons
 
-    rendered_content = do_render_markdown(
+    return do_render_markdown(
         message=message,
         content=content,
         realm=realm,
@@ -682,8 +681,6 @@ def render_markdown(message: Message,
         mention_data=mention_data,
         email_gateway=email_gateway,
     )
-
-    return rendered_content
 
 def do_render_markdown(message: Message,
                        content: str,
@@ -769,7 +766,7 @@ def aggregate_message_dict(input_dict: Dict[int, Dict[str, Any]],
     '''
 
     for message_id, attribute_dict in input_dict.items():
-        lookup_key = tuple([attribute_dict[f] for f in lookup_fields])
+        lookup_key = tuple(attribute_dict[f] for f in lookup_fields)
         if lookup_key not in lookup_dict:
             obj = {}
             for f in lookup_fields:
@@ -799,10 +796,9 @@ def get_inactive_recipient_ids(user_profile: UserProfile) -> List[int]:
     ).values(
         'recipient_id',
     )
-    inactive_recipient_ids = [
+    return [
         row['recipient_id']
         for row in rows]
-    return inactive_recipient_ids
 
 def get_muted_stream_ids(user_profile: UserProfile) -> List[int]:
     rows = get_stream_subscriptions_for_user(user_profile).filter(
@@ -811,10 +807,9 @@ def get_muted_stream_ids(user_profile: UserProfile) -> List[int]:
     ).values(
         'recipient__type_id',
     )
-    muted_stream_ids = [
+    return [
         row['recipient__type_id']
         for row in rows]
-    return muted_stream_ids
 
 def get_starred_message_ids(user_profile: UserProfile) -> List[int]:
     return list(UserMessage.objects.filter(
@@ -858,10 +853,7 @@ def get_raw_unread_data(user_profile: UserProfile) -> RawUnreadMessagesResult:
         if stream_id in muted_stream_ids:
             return True
 
-        if topic_mute_checker(recipient_id, topic):
-            return True
-
-        return False
+        return bool(topic_mute_checker(recipient_id, topic))
 
     huddle_cache: Dict[int, str] = {}
 
@@ -1126,8 +1118,6 @@ def get_recent_private_conversations(user_profile: UserProfile) -> Dict[int, Dic
     post_process.
 
     """
-    RECENT_CONVERSATIONS_LIMIT = 1000
-
     recipient_map = {}
     my_recipient_id = user_profile.recipient_id
 
@@ -1169,6 +1159,8 @@ def get_recent_private_conversations(user_profile: UserProfile) -> Dict[int, Dic
     ''')
 
     with connection.cursor() as cursor:
+        RECENT_CONVERSATIONS_LIMIT = 1000
+
         cursor.execute(query, {
             "user_profile_id": user_profile.id,
             "conversation_limit": RECENT_CONVERSATIONS_LIMIT,

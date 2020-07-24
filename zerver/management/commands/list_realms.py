@@ -24,11 +24,11 @@ Usage examples:
     def handle(self, *args: Any, **options: Any) -> None:
         realms = Realm.objects.all()
 
-        outer_format = "%-5s %-20s %-30s %-50s"
         inner_format = "%-40s %s"
         deactivated = False
 
         if not options["all"]:
+            outer_format = "%-5s %-20s %-30s %-50s"
             print(outer_format % ("id", "string_id", "name", "domain"))
             print(outer_format % ("--", "---------", "----", "------"))
 

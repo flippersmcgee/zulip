@@ -270,11 +270,7 @@ def log_exception_to_webhook_logger(
         request_body: Optional[str]=None,
         unexpected_event: bool=False,
 ) -> None:
-    if request_body is not None:
-        payload = request_body
-    else:
-        payload = request.body
-
+    payload = request_body if request_body is not None else request.body
     if request.content_type == 'application/json':
         try:
             payload = ujson.dumps(ujson.loads(payload), indent=4)
@@ -541,10 +537,7 @@ def authenticated_uploads_api_view(
                                     api_key: str=REQ(),
                                     *args: object, **kwargs: object) -> HttpResponse:
             user_profile = validate_api_key(request, None, api_key, False)
-            if not skip_rate_limiting:
-                limited_func = rate_limit()(view_func)
-            else:
-                limited_func = view_func
+            limited_func = rate_limit()(view_func) if not skip_rate_limiting else view_func
             return limited_func(request, user_profile, *args, **kwargs)
         return _wrapped_func_arguments
     return _wrapped_view_func

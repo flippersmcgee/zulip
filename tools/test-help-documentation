@@ -68,11 +68,8 @@ with vnu_servlet(), \
 if ret_help_doc != 0 or ret_api_doc != 0 or ret_portico_doc != 0:
     print("\033[0;91m")
     print("Failed")
-    print("\033[0m")
 else:
     print("\033[0;92m")
     print("Passed!")
-    print("\033[0m")
-
-
+print("\033[0m")
 sys.exit(ret_help_doc or ret_api_doc or ret_portico_doc)

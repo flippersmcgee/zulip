@@ -58,10 +58,10 @@ def process_user(user_dict: Dict[str, Any], realm_id: int, team_name: str,
     def is_team_admin(user_dict: Dict[str, Any]) -> bool:
         if user_dict["teams"] is None:
             return False
-        for team in user_dict["teams"]:
-            if team["name"] == team_name and "team_admin" in team["roles"]:
-                return True
-        return False
+        return any(
+            team["name"] == team_name and "team_admin" in team["roles"]
+            for team in user_dict["teams"]
+        )
 
     def get_full_name(user_dict: Dict[str, Any]) -> str:
         full_name = "{} {}".format(user_dict["first_name"], user_dict["last_name"])
@@ -111,8 +111,7 @@ def convert_user_data(user_handler: UserHandler,
                       team_name: str) -> None:
 
     user_data_list = []
-    for username in user_data_map:
-        user = user_data_map[username]
+    for username, user in user_data_map.items():
         if check_user_in_team(user, team_name) or user["is_mirror_dummy"]:
             user_data_list.append(user)
 
@@ -145,7 +144,7 @@ def convert_channel_data(channel_data: List[ZerverFieldsT],
         for username in user_data_map:
             user_dict = user_data_map[username]
             teams = user_dict["teams"]
-            if user_dict["teams"] is None:
+            if teams is None:
                 continue
 
             for team in teams:
@@ -430,11 +429,7 @@ def process_posts(num_teams: int,
             content = re.sub('[a-z]', 'x', content)
             content = re.sub('[A-Z]', 'X', content)
 
-        if "reactions" in post_dict:
-            reactions = post_dict["reactions"] or []
-        else:
-            reactions = []
-
+        reactions = post_dict["reactions"] or [] if "reactions" in post_dict else []
         message_dict = dict(
             sender_id=sender_id,
             content=content,
@@ -651,10 +646,7 @@ def check_user_in_team(user: Dict[str, Any], team_name: str) -> bool:
     if user["teams"] is None:
         # This is null for users not on any team
         return False
-    for team in user["teams"]:
-        if team["name"] == team_name:
-            return True
-    return False
+    return any(team["name"] == team_name for team in user["teams"])
 
 def label_mirror_dummy_users(num_teams: int, team_name: str, mattermost_data: Dict[str, Any],
                              username_to_user: Dict[str, Dict[str, Any]]) -> None:
@@ -676,8 +668,7 @@ def label_mirror_dummy_users(num_teams: int, team_name: str, mattermost_data: Di
                 user["is_mirror_dummy"] = True
 
 def reset_mirror_dummy_users(username_to_user: Dict[str, Dict[str, Any]]) -> None:
-    for username in username_to_user:
-        user = username_to_user[username]
+    for username, user in username_to_user.items():
         user["is_mirror_dummy"] = False
 
 def mattermost_data_file_to_dict(mattermost_data_file: str) -> Dict[str, Any]:

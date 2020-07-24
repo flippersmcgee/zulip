@@ -390,18 +390,14 @@ def generic_bulk_cached_fetch(
                   cache_keys[object_id] not in cached_objects]
 
     # Only call query_function if there are some ids to fetch from the database:
-    if len(needed_ids) > 0:
-        db_objects = query_function(needed_ids)
-    else:
-        db_objects = []
-
+    db_objects = query_function(needed_ids) if needed_ids else []
     items_for_remote_cache: Dict[str, Tuple[CompressedItemT]] = {}
     for obj in db_objects:
         key = cache_keys[id_fetcher(obj)]
         item = cache_transformer(obj)
         items_for_remote_cache[key] = (setter(item),)
         cached_objects[key] = item
-    if len(items_for_remote_cache) > 0:
+    if items_for_remote_cache:
         safe_cache_set_many(items_for_remote_cache)
     return {object_id: cached_objects[cache_keys[object_id]] for object_id in object_ids
             if cache_keys[object_id] in cached_objects}
@@ -545,11 +541,7 @@ def changed(kwargs: Any, fields: List[str]) -> bool:
         return True
 
     update_fields = set(kwargs['update_fields'])
-    for f in fields:
-        if f in update_fields:
-            return True
-
-    return False
+    return any(f in update_fields for f in fields)
 
 # Called by models.py to flush the user_profile cache whenever we save
 # a user_profile object
@@ -617,8 +609,10 @@ def realm_text_description_cache_key(realm: 'Realm') -> str:
 def flush_stream(sender: Any, **kwargs: Any) -> None:
     from zerver.models import UserProfile
     stream = kwargs['instance']
-    items_for_remote_cache = {}
-    items_for_remote_cache[get_stream_cache_key(stream.name, stream.realm_id)] = (stream,)
+    items_for_remote_cache = {
+        get_stream_cache_key(stream.name, stream.realm_id): (stream,)
+    }
+
     cache_set_many(items_for_remote_cache)
 
     if kwargs.get('update_fields') is None or 'name' in kwargs['update_fields'] and \

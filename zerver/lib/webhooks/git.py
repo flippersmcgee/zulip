@@ -66,7 +66,7 @@ def get_push_commits_event_message(user_name: str, compare_url: Optional[str],
             branch_name=branch_name,
         )
 
-    if not commits_data and not deleted:
+    if not commits_data:
         return PUSH_LOCAL_BRANCH_WITHOUT_COMMITS_MESSAGE_TEMPLATE.format(
             user_name=user_name,
             compare_url=compare_url,
@@ -155,10 +155,7 @@ def get_pull_request_event_message(user_name: str, action: str, url: str, number
         if len(assignees) == 1:
             assignees_string = "{username}".format(**assignees[0])
         else:
-            usernames = []
-            for a in assignees:
-                usernames.append(a['username'])
-
+            usernames = [a['username'] for a in assignees]
             assignees_string = ", ".join(usernames[:-1]) + " and " + usernames[-1]
 
         assignee_info = PULL_REQUEST_OR_ISSUE_ASSIGNEE_INFO_TEMPLATE.format(
@@ -180,7 +177,7 @@ def get_pull_request_event_message(user_name: str, action: str, url: str, number
     punctuation = ':' if message else '.'
     if (assignees or assignee or (target_branch and base_branch) or (title is None)):
         main_message = f'{main_message}{punctuation}'
-    elif title is not None:
+    else:
         # Once we get here, we know that the message ends with a title
         # which could already have punctuation at the end
         if title[-1] not in string.punctuation:
@@ -278,15 +275,13 @@ def get_commits_content(commits_data: List[Dict[str, Any]], is_truncated: bool=F
 
 def get_release_event_message(user_name: str, action: str,
                               tagname: str, release_name: str, url: str) -> str:
-    content = RELEASE_MESSAGE_TEMPLATE.format(
+    return RELEASE_MESSAGE_TEMPLATE.format(
         user_name=user_name,
         action=action,
         tagname=tagname,
         release_name=release_name,
         url=url,
     )
-
-    return content
 
 def get_short_sha(sha: str) -> str:
     return sha[:7]

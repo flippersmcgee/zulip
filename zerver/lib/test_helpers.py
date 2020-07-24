@@ -162,9 +162,9 @@ def queries_captured(include_savepoints: bool=False) -> Generator[
         try:
             return action(sql, params)
         finally:
-            stop = time.time()
-            duration = stop - start
             if include_savepoints or not isinstance(sql, str) or 'SAVEPOINT' not in sql:
+                stop = time.time()
+                duration = stop - start
                 queries.append({
                     'sql': self.mogrify(sql, params).decode('utf-8'),
                     'time': f"{duration:.3f}",
@@ -472,8 +472,7 @@ def use_s3_backend(method: FuncT) -> FuncT:
 def create_s3_buckets(*bucket_names: Tuple[str]) -> List[ServiceResource]:
     session = boto3.Session(settings.S3_KEY, settings.S3_SECRET_KEY)
     s3 = session.resource('s3')
-    buckets = [s3.create_bucket(Bucket=name) for name in bucket_names]
-    return buckets
+    return [s3.create_bucket(Bucket=name) for name in bucket_names]
 
 def use_db_models(method: Callable[..., None]) -> Callable[..., None]:  # nocoverage
     def method_patched_with_mock(self: 'MigrationsTestCase', apps: StateApps) -> None:

@@ -14,9 +14,9 @@ TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def start_server(logfile_name: str) -> Tuple[bool, str]:
     failure = True
-    key = "Quit the server with CTRL-C."
     datalog = []
     with open(logfile_name, 'rb', buffering=0) as logfile:
+        key = "Quit the server with CTRL-C."
         for i in range(200):
             time.sleep(0.5)
             print(f"{i}. Polling run-dev...")

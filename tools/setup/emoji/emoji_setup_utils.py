@@ -90,18 +90,15 @@ def generate_emoji_catalog(emoji_data: List[Dict[str, Any]],
 
     # Sort the emojis according to iamcal's sort order. This sorting determines the
     # order in which emojis will be displayed in emoji picker.
-    for category in emoji_catalog:
-        emoji_catalog[category].sort(key=lambda emoji_code: sort_order[emoji_code])
+    for category, value in emoji_catalog.items():
+        value.sort(key=lambda emoji_code: sort_order[emoji_code])
 
     return dict(emoji_catalog)
 
 # Use only those names for which images are present in all
 # the emoji sets so that we can switch emoji sets seamlessly.
 def emoji_is_universal(emoji_dict: Dict[str, Any]) -> bool:
-    for emoji_set in EMOJISETS:
-        if not emoji_dict['has_img_' + emoji_set]:
-            return False
-    return True
+    return all(emoji_dict['has_img_' + emoji_set] for emoji_set in EMOJISETS)
 
 def generate_codepoint_to_name_map(emoji_name_maps: Dict[str, Dict[str, Any]]) -> Dict[str, str]:
     codepoint_to_name: Dict[str, str] = {}

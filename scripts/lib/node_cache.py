@@ -16,11 +16,7 @@ YARN_PACKAGE_JSON = os.path.join(ZULIP_SRV_PATH, 'zulip-yarn/package.json')
 DEFAULT_PRODUCTION = False
 
 def get_yarn_args(production: bool) -> List[str]:
-    if production:
-        yarn_args = ["--prod"]
-    else:
-        yarn_args = []
-    return yarn_args
+    return ["--prod"] if production else []
 
 def generate_sha1sum_node_modules(
     setup_dir: Optional[str] = None, production: bool = DEFAULT_PRODUCTION,

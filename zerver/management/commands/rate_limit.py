@@ -50,8 +50,12 @@ class Command(ZulipBaseCommand):
 
         users = [user_profile]
         if options['bots']:
-            users.extend(bot for bot in UserProfile.objects.filter(is_bot=True,
-                                                                   bot_owner=user_profile))
+            users.extend(
+                iter(
+                    UserProfile.objects.filter(is_bot=True, bot_owner=user_profile)
+                )
+            )
+
 
         operation = options['operation']
         for user in users:

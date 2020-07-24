@@ -81,9 +81,7 @@ def relative_to_full_url(base_url: str, content: str) -> str:
         fragment = lxml.html.fromstring(new_content)
 
     fragment.make_links_absolute(base_url)
-    content = lxml.html.tostring(fragment).decode("utf-8")
-
-    return content
+    return lxml.html.tostring(fragment).decode("utf-8")
 
 def fix_emojis(content: str, base_url: str, emojiset: str) -> str:
     def make_emoji_img_elem(emoji_span_elem: CSSSelector) -> Dict[str, Any]:
@@ -323,7 +321,7 @@ def do_send_missedmessage_events_reply_in_zulip(user_profile: UserProfile,
         'realm_name_in_notifications': user_profile.realm_name_in_notifications,
     })
 
-    triggers = list(message['trigger'] for message in missed_messages)
+    triggers = [message['trigger'] for message in missed_messages]
     unique_triggers = set(triggers)
     context.update({
         'mention': 'mentioned' in unique_triggers or 'wildcard_mentioned' in unique_triggers,
@@ -345,11 +343,7 @@ def do_send_missedmessage_events_reply_in_zulip(user_profile: UserProfile,
 
     from zerver.lib.email_mirror import create_missed_message_address
     reply_to_address = create_missed_message_address(user_profile, missed_messages[0]['message'])
-    if reply_to_address == FromAddress.NOREPLY:
-        reply_to_name = ""
-    else:
-        reply_to_name = "Zulip"
-
+    reply_to_name = "" if reply_to_address == FromAddress.NOREPLY else "Zulip"
     narrow_url = get_narrow_url(user_profile, missed_messages[0]['message'])
     context.update({
         'narrow_url': narrow_url,
@@ -365,22 +359,25 @@ def do_send_missedmessage_events_reply_in_zulip(user_profile: UserProfile,
         context.update({'group_pm': True})
         if len(other_recipients) == 2:
             huddle_display_name = " and ".join(other_recipients)
-            context.update({'huddle_display_name': huddle_display_name})
         elif len(other_recipients) == 3:
             huddle_display_name = f"{other_recipients[0]}, {other_recipients[1]}, and {other_recipients[2]}"
-            context.update({'huddle_display_name': huddle_display_name})
         else:
             huddle_display_name = "{}, and {} others".format(
                 ', '.join(other_recipients[:2]), len(other_recipients) - 2)
-            context.update({'huddle_display_name': huddle_display_name})
+        context.update({'huddle_display_name': huddle_display_name})
     elif (missed_messages[0]['message'].recipient.type == Recipient.PERSONAL):
         context.update({'private_message': True})
     elif (context['mention'] or context['stream_email_notify']):
         # Keep only the senders who actually mentioned the user
         if context['mention']:
-            senders = list({m['message'].sender for m in missed_messages
-                            if m['trigger'] == 'mentioned' or
-                            m['trigger'] == 'wildcard_mentioned'})
+            senders = list(
+                {
+                    m['message'].sender
+                    for m in missed_messages
+                    if m['trigger'] in ['mentioned', 'wildcard_mentioned']
+                }
+            )
+
         message = missed_messages[0]['message']
         stream = Stream.objects.only('id', 'name').get(id=message.recipient.type_id)
         stream_header = f"{stream.name} > {message.topic_name()}"
@@ -404,12 +401,19 @@ def do_send_missedmessage_events_reply_in_zulip(user_profile: UserProfile,
             'message_content_disabled_by_realm': not realm.message_content_allowed_in_email_notifications,
         })
     else:
-        context.update({
-            'messages': build_message_list(user_profile, list(m['message'] for m in missed_messages)),
-            'sender_str': ", ".join(sender.full_name for sender in senders),
-            'realm_str': user_profile.realm.name,
-            'show_message_content': True,
-        })
+        context.update(
+            {
+                'messages': build_message_list(
+                    user_profile, [m['message'] for m in missed_messages]
+                ),
+                'sender_str': ", ".join(
+                    sender.full_name for sender in senders
+                ),
+                'realm_str': user_profile.realm.name,
+                'show_message_content': True,
+            }
+        )
+
 
     with override_language(user_profile.default_language):
         from_name: str = _("Zulip missed messages")

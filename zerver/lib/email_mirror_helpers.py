@@ -34,9 +34,7 @@ def get_email_gateway_message_string_from_address(address: str) -> str:
 
     if not match:
         raise ZulipEmailForwardError('Address not recognized by gateway.')
-    msg_string = match.group(1)
-
-    return msg_string
+    return match.group(1)
 
 def encode_email_address(stream: Stream, show_sender: bool=False) -> str:
     return encode_email_address_helper(stream.name, stream.email_token, show_sender)
@@ -95,9 +93,5 @@ def decode_email_address(email: str) -> Tuple[str, Dict[str, bool]]:
 
     # There should be one or two parts left:
     # [stream_name, email_token] or just [email_token]
-    if len(remaining_parts) == 1:
-        token = remaining_parts[0]
-    else:
-        token = remaining_parts[1]
-
+    token = remaining_parts[0] if len(remaining_parts) == 1 else remaining_parts[1]
     return token, options

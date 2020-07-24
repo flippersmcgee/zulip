@@ -112,11 +112,8 @@ def build_analytics_data(realm_count_query: Any,
                                                             List[Dict[str, Any]]]:
     # We limit the batch size on the client side to avoid OOM kills timeouts, etc.
     MAX_CLIENT_BATCH_SIZE = 10000
-    data = {}
-    data['analytics_realmcount'] = [
-        model_to_dict(row) for row in
-        realm_count_query.order_by("id")[0:MAX_CLIENT_BATCH_SIZE]
-    ]
+    data = {'analytics_realmcount': [model_to_dict(row) for row in
+            realm_count_query.order_by("id")[0:MAX_CLIENT_BATCH_SIZE]]}
     data['analytics_installationcount'] = [
         model_to_dict(row) for row in
         installation_count_query.order_by("id")[0:MAX_CLIENT_BATCH_SIZE]

@@ -64,9 +64,7 @@ class Command(ZulipBaseCommand):
                   "https://zulip.com/terms/")
             tos_prompt = input("Do you agree to the Terms of Service? [Y/n] ")
             print("")
-            if not (tos_prompt.lower() == 'y' or
-                    tos_prompt.lower() == '' or
-                    tos_prompt.lower() == 'yes'):
+            if not tos_prompt.lower() in ['y', '', 'yes']:
                 raise CommandError("Aborting, since Terms of Service have not been accepted.")
 
         registration_url = settings.PUSH_NOTIFICATION_BOUNCER_URL + "/api/v1/remotes/server/register"

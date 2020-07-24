@@ -123,11 +123,10 @@ Missing required -X argument in curl command:
 {command}
 """.strip()
 
+    regex = r'curl [-](sS)?X "?(GET|DELETE|PATCH|POST)"?'
     for line in lines:
-        regex = r'curl [-](sS)?X "?(GET|DELETE|PATCH|POST)"?'
-        if line.startswith('curl'):
-            if re.search(regex, line) is None:
-                raise MarkdownRenderingException(error_msg.format(command=line.strip()))
+        if line.startswith('curl') and re.search(regex, line) is None:
+            raise MarkdownRenderingException(error_msg.format(command=line.strip()))
 
 
 CODE_VALIDATORS = {
@@ -362,11 +361,7 @@ class FencedBlockPreprocessor(markdown.preprocessors.Preprocessor):
         return output
 
     def format_code(self, lang: str, text: str) -> str:
-        if lang:
-            langclass = LANG_TAG.format(lang)
-        else:
-            langclass = ''
-
+        langclass = LANG_TAG.format(lang) if lang else ''
         # Check for code hilite extension
         if not self.checked_for_codehilite:
             for ext in self.md.registeredExtensions:

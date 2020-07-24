@@ -78,8 +78,7 @@ class GenericOutgoingWebhookService(OutgoingWebhookServiceInterface):
             'content-type': 'application/json',
             'User-Agent': user_agent,
         }
-        response = requests.request('POST', base_url, data=request_data, headers=headers)
-        return response
+        return requests.request('POST', base_url, data=request_data, headers=headers)
 
     def process_success(self, response_json: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         if "response_not_required" in response_json and response_json['response_not_required']:
@@ -108,32 +107,29 @@ class SlackOutgoingWebhookService(OutgoingWebhookServiceInterface):
             fail_with_message(event, failure_message)
             return None
 
-        request_data = [("token", self.token),
-                        ("team_id", event['message']['sender_realm_str']),
-                        ("team_domain", email_to_domain(event['message']['sender_email'])),
-                        ("channel_id", event['message']['stream_id']),
-                        ("channel_name", event['message']['display_recipient']),
-                        ("timestamp", event['message']['timestamp']),
-                        ("user_id", event['message']['sender_id']),
-                        ("user_name", event['message']['sender_full_name']),
-                        ("text", event['command']),
-                        ("trigger_word", event['trigger']),
-                        ("service_id", event['user_profile_id']),
-                        ]
-
-        return request_data
+        return [
+            ("token", self.token),
+            ("team_id", event['message']['sender_realm_str']),
+            ("team_domain", email_to_domain(event['message']['sender_email'])),
+            ("channel_id", event['message']['stream_id']),
+            ("channel_name", event['message']['display_recipient']),
+            ("timestamp", event['message']['timestamp']),
+            ("user_id", event['message']['sender_id']),
+            ("user_name", event['message']['sender_full_name']),
+            ("text", event['command']),
+            ("trigger_word", event['trigger']),
+            ("service_id", event['user_profile_id']),
+        ]
 
     def send_data_to_server(self,
                             base_url: str,
                             request_data: Any) -> Response:
-        response = requests.request('POST', base_url, data=request_data)
-        return response
+        return requests.request('POST', base_url, data=request_data)
 
     def process_success(self, response_json: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         if "text" in response_json:
             content = response_json['text']
-            success_data = dict(content=content)
-            return success_data
+            return dict(content=content)
 
         return None
 
@@ -151,10 +147,9 @@ def get_service_interface_class(interface: str) -> Any:
 def get_outgoing_webhook_service_handler(service: Service) -> Any:
 
     service_interface_class = get_service_interface_class(service.interface_name())
-    service_interface = service_interface_class(token=service.token,
+    return service_interface_class(token=service.token,
                                                 user_profile=service.user_profile,
                                                 service_name=service.name)
-    return service_interface
 
 def send_response_message(bot_id: int, message_info: Dict[str, Any], response_data: Dict[str, Any]) -> None:
     """
